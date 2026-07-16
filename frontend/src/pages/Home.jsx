@@ -1,25 +1,36 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Hero from '../components/Hero';
-import Navbar from '../components/Navbar';
 import MovieCard from '../components/MovieCard';
 import { movieService } from '../services/movieService';
 
 const Home = () => {
   const [popularMovies, setPopularMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
+  const [animeMovies, setAnimeMovies] = useState([]); 
   const [loading, setLoading] = useState(true);
 
-  // Scroll handle karne ke liye refs
+  // Scroll handles
   const popularRowRef = useRef(null);
   const topRatedRowRef = useRef(null);
+  const animeRowRef = useRef(null); 
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchHomeMovies = async () => {
       try {
         setLoading(true);
-        const trending = await movieService.getTrending();
-        setPopularMovies(trending);
-        setTopRatedMovies(trending.slice().reverse()); // Temporary second row
+        
+        // Sabhi API calls ko parallelly aur safely run karenge
+        const [trendingRes, bollywoodRes, animeRes] = await Promise.allSettled([
+          movieService.getTrending(),
+          movieService.getTopRatedBollywood(),
+          movieService.getAnime()
+        ]);
+        
+        // Agar success hua toh data set karo, nahi toh empty array set karo
+        setPopularMovies(trendingRes.status === 'fulfilled' ? trendingRes.value : []);
+        setTopRatedMovies(bollywoodRes.status === 'fulfilled' ? bollywoodRes.value : []);
+        setAnimeMovies(animeRes.status === 'fulfilled' ? animeRes.value : []);
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching homepage movies:", error);
@@ -29,12 +40,10 @@ const Home = () => {
     fetchHomeMovies();
   }, []);
 
-  // Left/Right Slide Scroll Function
   const handleScroll = (rowRef, direction) => {
     if (rowRef.current) {
       const { scrollLeft, clientWidth } = rowRef.current;
       
-      // Calculate scroll distance (80% of current screen width)
       const scrollAmount = direction === 'left' 
         ? scrollLeft - clientWidth * 0.8 
         : scrollLeft + clientWidth * 0.8;
@@ -60,13 +69,11 @@ const Home = () => {
         <div className="space-y-12 pb-16">
           
           {/* Row 1: Popular Blockbusters */}
-          {/* NOTE: Is main wrapper se 'group' class hata di hai taaki cards global event se trigger na hon */}
           <div className="relative">
             <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-red-600 pl-3">
               Popular Movies
             </h2>
 
-            {/* Left Slider Arrow (Ab yeh slide hover par nahi, hamesha dikhega ya CSS se standard smooth background ke sath ready hai) */}
             <button 
               onClick={() => handleScroll(popularRowRef, 'left')}
               className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
@@ -74,11 +81,10 @@ const Home = () => {
               <span className="text-xl font-bold">❮</span>
             </button>
 
-            {/* Horizontal Scrollable Container */}
             <div 
               ref={popularRowRef}
               className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Hide scrollbar for Firefox/IE
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {popularMovies.map((movie) => (
                 <div key={movie.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
@@ -87,7 +93,6 @@ const Home = () => {
               ))}
             </div>
 
-            {/* Right Slider Arrow */}
             <button 
               onClick={() => handleScroll(popularRowRef, 'right')}
               className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
@@ -96,37 +101,66 @@ const Home = () => {
             </button>
           </div>
 
-          {/* Row 2: Highly Rated */}
-          {/* NOTE: Is wrapper se bhi 'group' aur 'transition-transform' clean kar diya hai */}
+        {/* Row 2: Updated Heading Title */}
+<div className="relative">
+  <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-red-600 pl-3">
+    Trending Bollywood
+  </h2>
+
+  <button 
+    onClick={() => handleScroll(topRatedRowRef, 'left')}
+    className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
+  >
+    <span className="text-xl font-bold">❮</span>
+  </button>
+
+  <div 
+    ref={topRatedRowRef}
+    className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
+    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+  >
+    {topRatedMovies.map((movie) => (
+      <div key={movie.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
+        <MovieCard movie={movie} />
+      </div>
+    ))}
+  </div>
+
+  <button 
+    onClick={() => handleScroll(topRatedRowRef, 'right')}
+    className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
+  >
+    <span className="text-xl font-bold">❯</span>
+  </button>
+</div>
+
+          {/* Row 3: Anime Movies */}
           <div className="relative">
             <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-red-600 pl-3">
-              Highly Rated
+              Anime Movies
             </h2>
 
-            {/* Left Slider Arrow */}
             <button 
-              onClick={() => handleScroll(topRatedRowRef, 'left')}
+              onClick={() => handleScroll(animeRowRef, 'left')}
               className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
             >
               <span className="text-xl font-bold">❮</span>
             </button>
 
-            {/* Horizontal Scrollable Container */}
             <div 
-              ref={topRatedRowRef}
+              ref={animeRowRef}
               className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {topRatedMovies.map((movie) => (
+              {animeMovies.map((movie) => (
                 <div key={movie.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
                   <MovieCard movie={movie} />
                 </div>
               ))}
             </div>
 
-            {/* Right Slider Arrow */}
             <button 
-              onClick={() => handleScroll(topRatedRowRef, 'right')}
+              onClick={() => handleScroll(animeRowRef, 'right')}
               className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
             >
               <span className="text-xl font-bold">❯</span>
