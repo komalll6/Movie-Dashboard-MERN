@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Film, Tv, TrendingUp, Search, Compass, Flame, Clock, 
-  Calendar, Star, Play, Disc, Tv2, ChevronDown 
-} from 'lucide-react';
+import { Film, Tv, TrendingUp, Search, Compass, Flame, Clock, Calendar, Star, Play, Disc, Tv2, ChevronDown } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
