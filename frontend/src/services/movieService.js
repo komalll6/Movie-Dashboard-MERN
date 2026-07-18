@@ -7,6 +7,18 @@ export const movieService = {
     return response.data.results;
   },
 
+  // Aapke baaki methods jaise getTrending wagera ke niche ise add karein:
+getAnime: async () => {
+  try {
+    // TMDB endpoint to discover movies with Animation genre ID (16)
+    const response = await axiosInstance.get(`/discover/movie?with_genres=16&sort_by=popularity.desc`);
+    return response.data.results;
+  } catch (error) {
+    console.error("Error fetching anime:", error);
+    throw error;
+  }
+},
+
   // 2. Get Popular Movies
   getPopular: async (page = 1) => {
     const response = await api.get("/movie/popular", { params: { page } });
@@ -25,7 +37,7 @@ export const movieService = {
     return response.data.results;
   },
 
-  // 5. Get Movie Details
+  // 5. Get Movie Details (Optimized: Ek baar mein details, videos, aur credits laata hai)
   getMovieDetails: async (movieId) => {
     const response = await api.get(`/movie/${movieId}`, {
       params: { append_to_response: "videos,credits,recommendations" },
@@ -66,9 +78,9 @@ export const movieService = {
       }
     });
     return response.data.results;
-
   },
-// 10. Fetch Fresh & Popular Bollywood Movies (Recent Hits)
+
+  // 10. Fetch Fresh & Popular Bollywood Movies (Recent Hits)
   getTopRatedBollywood: async (page = 1) => {
     try {
       const response = await api.get("/discover/movie", {
@@ -76,9 +88,9 @@ export const movieService = {
           page,
           region: "IN",
           with_original_language: "hi",
-          sort_by: "primary_release_date.desc", // Latest releases sabse pehle aayengi
-          "primary_release_date.lte": "2026-07-17", // Aaj ki date tak ke releases
-          "vote_count.gte": 15, // Taaki bilkul unknown ya zero rating movies filter ho jayein
+          sort_by: "primary_release_date.desc", 
+          "primary_release_date.lte": "2026-07-17", 
+          "vote_count.gte": 15, 
         },
       });
       return response.data.results;
@@ -88,13 +100,27 @@ export const movieService = {
     }
   },
 
-  getMovieImages: async (movieId) => {
-    const response = await fetch(`${BASE_URL}/movie/${movieId}/images`, {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${API_KEY}`
-      }
-    });
-    return await response.json();
+  // 11. Fetch Movie Cast / Credits (Top 6 Main Cast)
+  getMovieCredits: async (movieId) => {
+    const response = await api.get(`/movie/${movieId}/credits`);
+    return response.data.cast.slice(0, 6);
+  },
+
+  // 12. Fetch YouTube Trailer Videos (Strict Filtering applied to fix infinite loading)
+  getMovieVideos: async (movieId) => {
+    const response = await api.get(`/movie/${movieId}/videos`);
+    
+    // Pehle strictly check karega ki pure Official Trailer name ya type ho taaki clip/short skip ho jaye
+    const mainTrailer = response.data.results.find(
+      (vid) => vid.site === "YouTube" && vid.type === "Trailer" && 
+      (vid.name.toLowerCase().includes("official trailer") || vid.name.toLowerCase().includes("trailer"))
+    );
+
+    // Agar official trailer na mile, toh koi bhi normal trailer ya teaser uthaye
+    const backupTrailer = response.data.results.find(
+      (vid) => vid.site === "YouTube" && (vid.type === "Trailer" || vid.type === "Teaser")
+    );
+
+    return mainTrailer ? mainTrailer.key : (backupTrailer ? backupTrailer.key : null);
   }
 };

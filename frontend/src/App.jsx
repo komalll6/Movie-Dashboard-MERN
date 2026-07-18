@@ -1,18 +1,20 @@
-import AppRoutes from "./routes/AppRoutes";
-import { AppProvider } from "./context/AppContext";
-import Navbar from './components/Navbar';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom'; // Hamein yahan 'BrowserRouter as Router' ki zaroorat nahi hai
+import Home from "./pages/Home";
+import MovieDetail from "./components/moviedetail"; 
+import Navbar from "./components/Navbar";
+import CategoryPage from './components/CategoryPage';
 
 function App() {
   return (
-    <AppProvider>
-      <div className="min-h-screen bg-slate-950 text-white">
-        {/* Global Navbar jo har page par dikhega */}
-        <Navbar />
-        
-        {/* Aapki application ke saare routes/pages */}
-        <AppRoutes />
-      </div>
-    </AppProvider>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/movie/:id" element={<MovieDetail />} />
+        <Route path="/movie/category/:type" element={<CategoryPage />} />
+      </Routes>
+    </>
   );
 }
 

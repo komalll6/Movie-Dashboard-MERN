@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Film, Tv, TrendingUp, Search, Compass, Flame, Clock, Calendar, Star, Play, Disc, Tv2, ChevronDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Film, Tv, TrendingUp, Search, Compass, Flame, Clock, Calendar, Disc, Tv2, Star, ChevronDown, Play } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Scroll effect to transition navbar background
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -26,25 +26,25 @@ const Navbar = () => {
       
       {/* Left side: Logo & Navigation Links */}
       <div className="flex items-center gap-8">
-        {/* Brand Logo */}
-        <div className="text-red-600 font-extrabold text-2xl tracking-wider cursor-pointer select-none">
+        <Link 
+          to="/" 
+          className="text-red-600 font-extrabold text-2xl tracking-wider cursor-pointer select-none display-block"
+        >
           MovieHub
-        </div>
+        </Link>
 
         {/* Nav Links Items */}
         <div className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-300">
           
           {/* 🎬 MOVIES HOVER GROUP */}
           <div className="relative group py-2">
-            <button 
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white"
-            >
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white">
               <Film className="w-4 h-4" />
               <span>Movies</span>
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" />
             </button>
 
-            {/* MEGA MENU: MOVIES (Opens on Hover) */}
+            {/* MEGA MENU: MOVIES */}
             <div className="absolute top-full left-0 w-[550px] bg-[#131217] border border-white/10 rounded-xl p-6 shadow-2xl pointer-events-none opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex items-center gap-2 text-white font-bold mb-1">
                 <Film className="w-5 h-5 text-red-500" />
@@ -54,37 +54,27 @@ const Navbar = () => {
               
               <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                 <div className="space-y-4">
-                  <DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Uncover hidden gems and releases." badge="NEW" />
-                  <DropdownItem icon={<Play className="w-4 h-4 text-emerald-400" />} title="Now Playing" desc="Catch the latest theater releases." />
-                  <DropdownItem icon={<Clock className="w-4 h-4 text-blue-400" />} title="Latest Movies" desc="Fresh arrivals on our network." />
+                  <Link to="/movie/category/discover"><DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Uncover hidden gems and releases." badge="NEW" /></Link>
+                  <Link to="/movie/category/now_playing"><DropdownItem icon={<Play className="w-4 h-4 text-emerald-400" />} title="Now Playing" desc="Catch the latest theater releases." /></Link>
+                  <Link to="/movie/category/top_rated"><DropdownItem icon={<Star className="w-4 h-4 text-blue-400" />} title="Top Rated" desc="Highest rated global movies." /></Link>
                 </div>
                 <div className="space-y-4">
-                  <Flame className="w-4 h-4 text-orange-400" />
-                  <DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Dive into world trending titles." />
-                  <DropdownItem icon={<Calendar className="w-4 h-4 text-pink-400" />} title="Upcoming" desc="Be the first to see fresh content." />
-                  <DropdownItem icon={<Disc className="w-4 h-4 text-yellow-400" />} title="Anime" desc="Action packed dynamic animation." />
+                  <Link to="/movie/category/popular"><DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Dive into world trending titles." /></Link>
+                  <Link to="/movie/category/upcoming"><DropdownItem icon={<Calendar className="w-4 h-4 text-pink-400" />} title="Upcoming" desc="Be the first to see fresh content." /></Link>
+                  <Link to="/movie/category/anime"><DropdownItem icon={<Disc className="w-4 h-4 text-yellow-400" />} title="Anime Collection" desc="Action packed dynamic animation." /></Link>
                 </div>
-              </div>
-
-              {/* OTT Providers Section */}
-              <div className="mt-6 pt-4 border-t border-white/5 grid grid-cols-2 gap-4 text-xs text-gray-400">
-                <div className="flex items-center gap-2 hover:text-white cursor-pointer"><span className="text-red-500 font-bold">N</span> Netflix Originals</div>
-                <div className="flex items-center gap-2 hover:text-white cursor-pointer"><span className="text-blue-400 font-bold">D</span> Disney+ Hotstar</div>
               </div>
             </div>
           </div>
 
           {/* 📺 SHOWS HOVER GROUP */}
           <div className="relative group py-2">
-            <button 
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white"
-            >
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white">
               <Tv className="w-4 h-4" />
               <span>Shows</span>
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" />
             </button>
 
-            {/* MEGA MENU: SHOWS (Opens on Hover) */}
             <div className="absolute top-full left-0 w-[550px] bg-[#131217] border border-white/10 rounded-xl p-6 shadow-2xl pointer-events-none opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex items-center gap-2 text-white font-bold mb-1">
                 <Tv className="w-5 h-5 text-blue-500" />
@@ -93,25 +83,22 @@ const Navbar = () => {
               <p className="text-xs text-gray-400 mb-6">Discover premium web series, television epics and reality shows.</p>
               
               <div className="grid grid-cols-2 gap-4">
-                <DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Explore premium dynamic series." badge="NEW" />
-                <DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Shows that people love right now." />
-                <DropdownItem icon={<Tv2 className="w-4 h-4 text-emerald-400" />} title="Airing Today" desc="Episodes running on air tonight." />
-                <DropdownItem icon={<Star className="w-4 h-4 text-yellow-400" />} title="On The Air" desc="Top regular running broadcasts." />
+                <Link to="/movie/category/tv_discover"><DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Explore premium dynamic series." badge="NEW" /></Link>
+                <Link to="/movie/category/tv_popular"><DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Shows that people love right now." /></Link>
+                <Link to="/movie/category/tv_airing_today"><DropdownItem icon={<Tv2 className="w-4 h-4 text-emerald-400" />} title="Airing Today" desc="Episodes running on air tonight." /></Link>
+                <Link to="/movie/category/tv_top_rated"><DropdownItem icon={<Star className="w-4 h-4 text-yellow-400" />} title="Top Rated" desc="Top regular running broadcasts." /></Link>
               </div>
             </div>
           </div>
 
           {/* 🔥 TRENDING HOVER GROUP */}
           <div className="relative group py-2">
-            <button 
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white"
-            >
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white">
               <TrendingUp className="w-4 h-4" />
               <span>Trending</span>
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" />
             </button>
 
-            {/* MEGA MENU: TRENDING (Opens on Hover) */}
             <div className="absolute top-full left-0 w-[400px] bg-[#131217] border border-white/10 rounded-xl p-5 shadow-2xl pointer-events-none opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex items-center gap-2 text-white font-bold mb-1">
                 <TrendingUp className="w-5 h-5 text-orange-500" />
@@ -120,8 +107,8 @@ const Navbar = () => {
               <p className="text-xs text-gray-400 mb-4">Stay in loop with global internet choices right now.</p>
               
               <div className="space-y-3">
-                <DropdownItem icon={<Film className="w-4 h-4 text-red-400" />} title="Trending Movies" desc="Hot movies today." />
-                <DropdownItem icon={<Tv className="w-4 h-4 text-blue-400" />} title="Trending Shows" desc="Most watched web-series." />
+                <Link to="/movie/category/trending_movie"><DropdownItem icon={<Film className="w-4 h-4 text-red-400" />} title="Trending Movies" desc="Hot movies today." /></Link>
+                <Link to="/movie/category/trending_tv"><DropdownItem icon={<Tv className="w-4 h-4 text-blue-400" />} title="Trending Shows" desc="Most watched web-series." /></Link>
               </div>
             </div>
           </div>
@@ -129,7 +116,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Right side: Search Input & Profile Actions */}
+      {/* Right side */}
       <div className="flex items-center gap-4">
         <div className="relative hidden sm:block w-64">
           <input 
@@ -148,10 +135,9 @@ const Navbar = () => {
   );
 };
 
-// Reusable Inner Dropdown Component Item
 const DropdownItem = ({ icon, title, desc, badge }) => {
   return (
-    <div className="flex gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer group/item transition-colors duration-200">
+    <div className="flex gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer group/item transition-colors duration-200 w-full text-left">
       <div className="mt-1 bg-white/5 w-8 h-8 flex items-center justify-center rounded-md group-hover/item:bg-white/10 transition">
         {icon}
       </div>
@@ -163,7 +149,7 @@ const DropdownItem = ({ icon, title, desc, badge }) => {
         <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{desc}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default Navbar;
