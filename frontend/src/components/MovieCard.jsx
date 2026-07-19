@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { Star } from "lucide-react";
 
 function MovieCard({ movie }) {
+  const title = movie.title || movie.name || "Untitled Movie";
+  
   const posterUrl = movie.poster_path
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : "https://via.placeholder.com/500x750?text=No+Image+Available";
@@ -9,50 +12,47 @@ function MovieCard({ movie }) {
   
   const releaseYear = movie.release_date 
     ? movie.release_date.split('-')[0] 
-    : (movie.first_air_date ? movie.first_air_date.split('-')[0] : '');
+    : (movie.first_air_date ? movie.first_air_date.split('-')[0] : '2026');
 
   return (
-    <Link to={`/movie/${movie.id}`} className="block w-full">
-      {/* Humne is main div par 'group' lagaya hai taaki hover effects isi ke relative rahein */}
-      <div className="group relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-[#181818] transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl hover:shadow-black/80">
-        
-        {/* Movie Poster Image */}
-        <img
-          src={posterUrl}
-          alt={movie.title || movie.name}
+    <Link 
+      to={`/movie/${movie.id}`} 
+      className="group relative bg-[#131217] rounded-2xl overflow-hidden shadow-lg border border-white/5 hover:border-red-600/40 transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col w-full"
+    >
+      {/* Image Block & Stickers */}
+      <div className="relative aspect-[2/3] w-full bg-neutral-900 overflow-hidden">
+        <img 
+          src={posterUrl} 
+          alt={title}
+          className="w-full h-full object-cover transform duration-500 group-hover:scale-105"
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-
-        {/* Info Overlay (Sirf tabhi dikhega jab is specific individual card par hover hoga) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-          
-          {/* Play Icon */}
-          <div className="mb-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            <span className="w-10 h-10 bg-white hover:bg-red-600 hover:text-white text-black rounded-full flex items-center justify-center shadow-lg transition duration-200">
-              <span className="text-sm pl-0.5">▶</span>
-            </span>
-          </div>
-
-          {/* Title */}
-          <h3 className="font-bold text-white text-base leading-tight mb-1 drop-shadow-md transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
-            {movie.title || movie.name}
-          </h3>
-
-          {/* Metadata */}
-          <div className="flex items-center gap-3 text-xs font-semibold text-gray-300 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100">
-            <span className="text-emerald-400">
-              ★ {rating}
-            </span>
-            {releaseYear && (
-              <>
-                <span className="text-gray-600">•</span>
-                <span>{releaseYear}</span>
-              </>
-            )}
-          </div>
+        
+        {/* Quality Sticker (Top-Left) */}
+        <div className="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow z-10">
+          HD
         </div>
         
+        {/* Dynamic Star Rating (Top-Right) */}
+        {movie.vote_average > 0 && (
+          <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow z-10">
+            <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+            {rating}
+          </div>
+        )}
+      </div>
+
+      {/* Text Info Section (Always Visible at Bottom) */}
+      <div className="p-3 flex flex-col flex-grow justify-between bg-[#131217] border-t border-white/5">
+        <h3 className="text-sm font-bold text-gray-200 group-hover:text-red-500 transition-colors line-clamp-1 truncate uppercase tracking-wide">
+          {title}
+        </h3>
+        <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1 font-medium">
+          <span>{releaseYear}</span>
+          <span className="border border-white/10 px-1.5 py-0.2 rounded text-[9px] uppercase tracking-tighter bg-white/5">
+            {movie.first_air_date ? 'Show' : 'Movie'}
+          </span>
+        </div>
       </div>
     </Link>
   );

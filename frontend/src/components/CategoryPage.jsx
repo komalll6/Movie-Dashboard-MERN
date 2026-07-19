@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { movieService } from '../services/movieService'; 
-import { SlidersHorizontal, ArrowUpDown, Star } from 'lucide-react';
+import { SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import MovieCard from './MovieCard';
 
 const CategoryPage = () => {
   const { type } = useParams();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(500);
 
-  // Formatting Titles for Headers
+  // Dynamic Titles Setup
   const getCategoryTitle = (catType) => {
     const titles = {
       discover: "Discover Movies",
@@ -16,20 +21,14 @@ const CategoryPage = () => {
       top_rated: "Top Rated Masterpieces",
       popular: "Popular Movies Globally",
       upcoming: "Highly Anticipated Upcoming Movies",
-      anime: "Anime & Animation Specials",
-      tv_discover: "Discover TV Series",
-      tv_popular: "Trending Popular Shows",
-      tv_airing_today: "Airing Today on Television",
-      tv_top_rated: "Critically Acclaimed TV Shows",
-      trending_movie: "Trending Movies This Week",
-      trending_tv: "Trending TV Shows This Week"
+      anime: "Anime & Animation Specials"
     };
-    return titles[catType] || "Explore Movies & Shows";
+    return titles[catType] || "Explore Movies";
   };
 
-  const getCategoryDesc = (catType) => {
-    return `Explore handpicked high-quality ${catType.includes('tv') ? 'TV Shows' : 'Movies'} streaming directly from TMDB collections. Filtering the best cinematic experiences.`;
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type]);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -37,43 +36,48 @@ const CategoryPage = () => {
       try {
         let response = [];
         
-        // Exact mapping with your movieService object methods
         if (type === 'anime') {
-          response = await movieService.getAnime() || [];
+          response = await movieService.getAnime(currentPage) || [];
         } else if (type === 'popular') {
-          response = await movieService.getPopular() || [];
+          response = await movieService.getPopular(currentPage) || [];
         } else if (type === 'upcoming') {
-          response = await movieService.getUpcoming() || [];
+          response = await movieService.getUpcoming(currentPage) || [];
         } else if (type === 'top_rated') {
-          response = await movieService.getTopRated() || [];
+          response = await movieService.getTopRated(currentPage) || [];
         } else if (type === 'discover') {
-          // Genre 28 (Action) or any fallback for discover
-          response = await movieService.getByGenre(28) || [];
+          response = await movieService.getByGenre(28, currentPage) || []; 
         } else {
-          // Fallback trending data (Now playing, trending etc.)
-          response = await movieService.getTrending() || [];
+          response = await movieService.getTrending("day") || [];
         }
-        
-        setItems(response.slice(0, 18)); // Display 18 premium cards
+
+        setItems(response);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (error) {
-        console.error("Failed fetching category lists:", error);
+        console.error("Failed fetching paginated collections:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCategoryData();
-  }, [type]);
+  }, [type, currentPage]);
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0d0c0f] pt-32 px-6 md:px-12 text-center text-gray-400">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-white/5 w-1/4 mx-auto rounded"></div>
-          <div className="h-4 bg-white/5 w-1/3 mx-auto rounded"></div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 pt-12">
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="h-72 bg-white/5 rounded-2xl"></div>
+              <div key={i} className="h-80 bg-white/5 rounded-2xl"></div>
             ))}
           </div>
         </div>
@@ -82,16 +86,16 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0c0f] text-white pt-32 px-6 md:px-12 pb-16">
+    <div className="min-h-screen bg-[#0d0c0f] text-white pt-32 px-6 md:px-12 pb-16 font-sans">
       
-      {/* Upper Header block */}
+      {/* Upper Header Control Panel */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-white/5">
         <div>
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 uppercase">
             {getCategoryTitle(type)}
           </h1>
-          <p className="text-sm text-gray-400 max-w-2xl font-light">
-            {getCategoryDesc(type)}
+          <p className="text-xs text-gray-400 max-w-2xl font-light">
+            Browse premium HD movies streaming across the dynamic TMDB network data wrappers. Only verified cinematic movie data items.
           </p>
         </div>
 
@@ -107,52 +111,50 @@ const CategoryPage = () => {
         </div>
       </div>
 
-      {/* Movie Cards Layout */}
+      {/* Grid Layout containing Dynamic Movie Cards */}
       {items.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">No titles found for this collection.</div>
+        <div className="text-center py-20 text-gray-500">No movies found in this listing zone.</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          {items.map((item) => {
-            const title = item.original_title || item.title || item.name || "Untitled";
-            const releaseYear = item.release_date?.split('-')[0] || item.first_air_date?.split('-')[0] || "N/A";
-            
-            return (
-              <Link 
-                to={`/movie/${item.id}`} 
-                key={item.id}
-                className="group relative bg-[#131217] rounded-2xl overflow-hidden shadow-lg border border-white/5 hover:border-red-600/30 transition-all duration-300 transform hover:-translate-y-1.5 flex flex-col"
-              >
-                <div className="relative aspect-[2/3] w-full bg-neutral-900 overflow-hidden">
-                  <img 
-                    src={`https://image.tmdb.org/t/p/w500${item.poster_path}`} 
-                    alt={title}
-                    className="w-full h-full object-cover transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-2 left-2 bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow">
-                    HD
-                  </div>
-                  {item.vote_average > 0 && (
-                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md text-yellow-400 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 shadow">
-                      <Star className="w-2.5 h-2.5 fill-yellow-400" />
-                      {item.vote_average.toFixed(1)}
-                    </div>
-                  )}
-                </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {items.map((item) => (
+              <MovieCard key={item.id} movie={item} />
+            ))}
+          </div>
 
-                <div className="p-3 flex flex-col flex-grow justify-between">
-                  <h3 className="text-sm font-bold text-gray-200 group-hover:text-red-500 transition-colors line-clamp-1 truncate uppercase tracking-wide">
-                    {title}
-                  </h3>
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 mt-1 font-medium">
-                    <span>{releaseYear}</span>
-                    <span className="border border-white/10 px-1 rounded text-[9px] uppercase tracking-tighter bg-white/5">Movie</span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+          {/* Premium Pagination Panel */}
+          <div className="flex items-center justify-center gap-6 mt-16 pt-8 border-t border-white/5 select-none">
+            <button 
+              onClick={handlePrev}
+              disabled={currentPage === 1}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-bold tracking-wide transition-all ${
+                currentPage === 1 
+                  ? 'border-white/5 bg-white/5 text-gray-600 cursor-not-allowed' 
+                  : 'border-white/10 bg-[#131217] text-gray-200 hover:bg-white/5 hover:text-white active:scale-95 cursor-pointer'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </button>
+
+            <span className="text-sm font-medium text-gray-400">
+              Page <span className="text-white font-bold">{currentPage}</span> of <span className="text-white/60">{totalPages}</span>
+            </span>
+
+            <button 
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-bold tracking-wide transition-all ${
+                currentPage === totalPages 
+                  ? 'border-white/5 bg-white/5 text-gray-600 cursor-not-allowed' 
+                  : 'border-white/10 bg-[#131217] text-gray-200 hover:bg-white/5 hover:text-white active:scale-95 cursor-pointer'
+              }`}
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
