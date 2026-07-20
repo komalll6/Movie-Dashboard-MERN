@@ -1,86 +1,66 @@
 import api from "./api";
 
-export const movieService = {
-  // 1. Get Trending Movies (Used for Hero rotation or main landing page)
-  getTrending: async (timeWindow = "day") => {
-    const response = await api.get(`/trending/movie/${timeWindow}`);
-    return response.data.results;
-  },
-
-  // Aapke baaki methods jaise getTrending wagera ke niche ise add karein:
-getAnime: async () => {
-  try {
-    // TMDB endpoint to discover movies with Animation genre ID (16)
-    const response = await axiosInstance.get(`/discover/movie?with_genres=16&sort_by=popularity.desc`);
-    return response.data.results;
-  } catch (error) {
-    console.error("Error fetching anime:", error);
-    throw error;
+// Helper function to interleave lists cleanly for Category Page mixed views
+const interleaveMovies = (...lists) => {
+  const mixed = [];
+  const maxLen = Math.max(...lists.map(l => l.length));
+  for (let i = 0; i < maxLen; i++) {
+    lists.forEach(list => {
+      if (list[i]) mixed.push(list[i]);
+    });
   }
-},
+  return mixed;
+};
 
-  // 2. Get Popular Movies
+export const movieService = {
+  // 1. Get Trending Movies (Returns pure array for Home component)
+  getTrending: async (timeWindow = "day") => {
+    try {
+      const response = await api.get(`/trending/movie/${timeWindow}`);
+      return response.data.results || [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  // 2. Standard Popular Movies (Returns pure array to keep Home page safe)
   getPopular: async (page = 1) => {
-    const response = await api.get("/movie/popular", { params: { page } });
-    return response.data.results;
+    try {
+      const response = await api.get("/movie/popular", { params: { page } });
+      return response.data.results || [];
+    } catch (e) {
+      return [];
+    }
   },
 
-  // 3. Get Top Rated Movies
+  // 3. Standard Top Rated Movies (Returns pure array to keep Home page safe)
   getTopRated: async (page = 1) => {
-    const response = await api.get("/movie/top_rated", { params: { page } });
-    return response.data.results;
+    try {
+      const response = await api.get("/movie/top_rated", { params: { page } });
+      return response.data.results || [];
+    } catch (e) {
+      return [];
+    }
   },
 
-  // 4. Get Upcoming Movies
-  getUpcoming: async (page = 1) => {
-    const response = await api.get("/movie/upcoming", { params: { page } });
-    return response.data.results;
-  },
-
-  // 5. Get Movie Details (Optimized: Ek baar mein details, videos, aur credits laata hai)
-  getMovieDetails: async (movieId) => {
-    const response = await api.get(`/movie/${movieId}`, {
-      params: { append_to_response: "videos,credits,recommendations" },
-    });
-    return response.data;
-  },
-
-  // 6. Search Movies
-  searchMovies: async (query, page = 1) => {
-    const response = await api.get("/search/movie", {
-      params: { query, page, include_adult: false },
-    });
-    return response.data.results;
-  },
-
-  // 7. Discover Movies by Genre ID
-  getByGenre: async (genreId, page = 1) => {
-    const response = await api.get("/discover/movie", {
-      params: { with_genres: genreId, page, sort_by: "popularity.desc" },
-    });
-    return response.data.results;
-  },
-
-  // 8. Fetch Movie Genre Map
-  getGenres: async () => {
-    const response = await api.get("/genre/movie/list");
-    return response.data.genres;
-  }, 
-
-  // 9. Fetch Dynamic Anime List (Pure Japanese Animation)
+  // 4. Standard Anime Collection (Returns pure array to completely fix the Home.jsx crash)
   getAnime: async (page = 1) => {
-    const response = await api.get("/discover/movie", {
-      params: {
-        with_genres: 16,                  // 16 = Animation Genre ID
-        with_original_language: "ja",     // ja = Japanese Language (Filters pure Anime)
-        sort_by: "popularity.desc",
-        page
-      }
-    });
-    return response.data.results;
+    try {
+      const response = await api.get("/discover/movie", {
+        params: {
+          with_genres: 16,
+          with_original_language: "ja",
+          sort_by: "popularity.desc",
+          page
+        }
+      });
+      return response.data.results || [];
+    } catch (e) {
+      return [];
+    }
   },
 
-  // 10. Fetch Fresh & Popular Bollywood Movies (Recent Hits)
+  // 5. Standard Bollywood Endpoint (Returns pure array for Home Page sliders)
   getTopRatedBollywood: async (page = 1) => {
     try {
       const response = await api.get("/discover/movie", {
@@ -88,39 +68,165 @@ getAnime: async () => {
           page,
           region: "IN",
           with_original_language: "hi",
-          sort_by: "primary_release_date.desc", 
-          "primary_release_date.lte": "2026-07-17", 
-          "vote_count.gte": 15, 
+          sort_by: "popularity.desc"
         },
       });
-      return response.data.results;
+      return response.data.results || [];
     } catch (error) {
-      console.error("Error fetching Bollywood movies:", error);
       return [];
     }
   },
 
-  // 11. Fetch Movie Cast / Credits (Top 6 Main Cast)
-  getMovieCredits: async (movieId) => {
-    const response = await api.get(`/movie/${movieId}/credits`);
-    return response.data.cast.slice(0, 6);
+  // ==========================================
+  // DEDICATED MULTI-INDUSTRY MIXED METHODS FOR CATEGORY PAGE (WITH TOTAL_PAGES OBJECTS)
+  // ==========================================
+
+  getPopularMixedObject: async (page = 1) => {
+    try {
+      const [hollywood, bollywood, south] = await Promise.all([
+        api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "en" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta|ml|kn" } })
+      ]);
+      return {
+        results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+        total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1)
+      };
+    } catch (e) {
+      return { results: [], total_pages: 1 };
+    }
   },
 
-  // 12. Fetch YouTube Trailer Videos (Strict Filtering applied to fix infinite loading)
-  getMovieVideos: async (movieId) => {
-    const response = await api.get(`/movie/${movieId}/videos`);
-    
-    // Pehle strictly check karega ki pure Official Trailer name ya type ho taaki clip/short skip ho jaye
-    const mainTrailer = response.data.results.find(
-      (vid) => vid.site === "YouTube" && vid.type === "Trailer" && 
-      (vid.name.toLowerCase().includes("official trailer") || vid.name.toLowerCase().includes("trailer"))
-    );
+  getTopRatedMixedObject: async (page = 1) => {
+    try {
+      const [hollywood, bollywood, south] = await Promise.all([
+        api.get("/movie/top_rated", { params: { page, with_original_language: "en" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "vote_average.desc", "vote_count.gte": 100, with_original_language: "hi" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "vote_average.desc", "vote_count.gte": 100, with_original_language: "te|ta|ml|kn" } })
+      ]);
+      return {
+        results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+        total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1)
+      };
+    } catch (e) {
+      return { results: [], total_pages: 1 };
+    }
+  },
 
-    // Agar official trailer na mile, toh koi bhi normal trailer ya teaser uthaye
-    const backupTrailer = response.data.results.find(
-      (vid) => vid.site === "YouTube" && (vid.type === "Trailer" || vid.type === "Teaser")
-    );
+  discoverAllMixedObject: async (page = 1) => {
+    try {
+      const [hollywood, bollywood, south] = await Promise.all([
+        api.get("/discover/movie", { params: { page, sort_by: "revenue.desc", with_original_language: "en" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+        api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta" } })
+      ]);
+      return {
+        results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+        total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1)
+      };
+    } catch (e) {
+      return { results: [], total_pages: 1 };
+    }
+  },
 
-    return mainTrailer ? mainTrailer.key : (backupTrailer ? backupTrailer.key : null);
+  getAnimeMixedObject: async (page = 1) => {
+    try {
+      const response = await api.get("/discover/movie", {
+        params: { with_genres: 16, with_original_language: "ja", sort_by: "popularity.desc", page }
+      });
+      return {
+        results: response.data.results || [],
+        total_pages: response.data.total_pages || 1
+      };
+    } catch (e) {
+      return { results: [], total_pages: 1 };
+    }
+  },
+
+  // 6. Polymorphic Details Fetcher (Movie Details OR TV Series Details dynamically)
+  getMovieDetails: async (movieId) => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const contentType = urlParams.get('type');
+
+      if (contentType === 'tv') {
+        const tvResponse = await api.get(`/tv/${movieId}`, {
+          params: { append_to_response: "videos,credits,recommendations" },
+        });
+        return {
+          ...tvResponse.data,
+          title: tvResponse.data.name,
+          release_date: tvResponse.data.first_air_date,
+          number_of_seasons: tvResponse.data.number_of_seasons,
+          number_of_episodes: tvResponse.data.number_of_episodes,
+          isTVSeries: true
+        };
+      }
+
+      const response = await api.get(`/movie/${movieId}`, {
+        params: { append_to_response: "videos,credits,recommendations" },
+      });
+      return response.data;
+    } catch (movieError) {
+      try {
+        const tvResponse = await api.get(`/tv/${movieId}`, {
+          params: { append_to_response: "videos,credits,recommendations" },
+        });
+        return {
+          ...tvResponse.data,
+          title: tvResponse.data.name,
+          release_date: tvResponse.data.first_air_date,
+          number_of_seasons: tvResponse.data.number_of_seasons,
+          number_of_episodes: tvResponse.data.number_of_episodes,
+          isTVSeries: true
+        };
+      } catch (tvError) {
+        throw tvError;
+      }
+    }
+  },
+
+  // 7. Dynamic Episodes Fetcher for Specific Season Dropdown Click
+  getSeasonEpisodes: async (tvId, seasonNumber) => {
+    try {
+      const response = await api.get(`/tv/${tvId}/season/${seasonNumber}`);
+      return response.data.episodes || [];
+    } catch (error) {
+      console.error("Error fetching season episodes:", error);
+      return [];
+    }
+  },
+
+  // 8. Fetch 2026 Trending TV Series 
+  getTrendingSeries2026: async (page = 1) => {
+    try {
+      const response = await api.get("/discover/tv", {
+        params: {
+          page,
+          first_air_date_year: 2026,
+          sort_by: "popularity.desc",
+          include_adult: false
+        }
+      });
+      
+      const detailedPromises = (response.data.results || []).map(async (show) => {
+        try {
+          const detailRes = await api.get(`/tv/${show.id}`);
+          return {
+            ...show,
+            number_of_seasons: detailRes.data.number_of_seasons || 1,
+            number_of_episodes: detailRes.data.number_of_episodes || 0,
+            is_series: true
+          };
+        } catch {
+          return { ...show, number_of_seasons: 1, number_of_episodes: 0, is_series: true };
+        }
+      });
+
+      return await Promise.all(detailedPromises);
+    } catch (error) {
+      console.error("Error loading trending series:", error);
+      return [];
+    }
   }
 };

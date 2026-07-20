@@ -7,29 +7,32 @@ const Home = () => {
   const [popularMovies, setPopularMovies] = useState([]);
   const [topRatedMovies, setTopRatedMovies] = useState([]);
   const [animeMovies, setAnimeMovies] = useState([]); 
+  const [trendingSeries, setTrendingSeries] = useState([]); // Dynamic TV Series hooks
   const [loading, setLoading] = useState(true);
 
   // Scroll handles
   const popularRowRef = useRef(null);
   const topRatedRowRef = useRef(null);
   const animeRowRef = useRef(null); 
+  const seriesRowRef = useRef(null); // Ref handler initialization
 
- useEffect(() => {
+  useEffect(() => {
     const fetchHomeMovies = async () => {
       try {
         setLoading(true);
         
-        // Sabhi API calls ko parallelly aur safely run karenge
-        const [trendingRes, bollywoodRes, animeRes] = await Promise.allSettled([
+        // Fetching all endpoints in parallel securely
+        const [trendingRes, bollywoodRes, animeRes, seriesRes] = await Promise.allSettled([
           movieService.getTrending(),
           movieService.getTopRatedBollywood(),
-          movieService.getAnime()
+          movieService.getAnime(),
+          movieService.getTrendingSeries2026() // 2026 TV Series Endpoint integration
         ]);
         
-        // Agar success hua toh data set karo, nahi toh empty array set karo
         setPopularMovies(trendingRes.status === 'fulfilled' ? trendingRes.value : []);
         setTopRatedMovies(bollywoodRes.status === 'fulfilled' ? bollywoodRes.value : []);
         setAnimeMovies(animeRes.status === 'fulfilled' ? animeRes.value : []);
+        setTrendingSeries(seriesRes.status === 'fulfilled' ? seriesRes.value : []);
         
         setLoading(false);
       } catch (error) {
@@ -101,38 +104,38 @@ const Home = () => {
             </button>
           </div>
 
-        {/* Row 2: Updated Heading Title */}
-<div className="relative">
-  <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-red-600 pl-3">
-    Trending Bollywood
-  </h2>
+          {/* Row 2: Trending Bollywood */}
+          <div className="relative">
+            <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-red-600 pl-3">
+              Trending Bollywood
+            </h2>
 
-  <button 
-    onClick={() => handleScroll(topRatedRowRef, 'left')}
-    className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
-  >
-    <span className="text-xl font-bold">❮</span>
-  </button>
+            <button 
+              onClick={() => handleScroll(topRatedRowRef, 'left')}
+              className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
+            >
+              <span className="text-xl font-bold">❮</span>
+            </button>
 
-  <div 
-    ref={topRatedRowRef}
-    className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
-    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-  >
-    {topRatedMovies.map((movie) => (
-      <div key={movie.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
-        <MovieCard movie={movie} />
-      </div>
-    ))}
-  </div>
+            <div 
+              ref={topRatedRowRef}
+              className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {topRatedMovies.map((movie) => (
+                <div key={movie.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
+                  <MovieCard movie={movie} />
+                </div>
+              ))}
+            </div>
 
-  <button 
-    onClick={() => handleScroll(topRatedRowRef, 'right')}
-    className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
-  >
-    <span className="text-xl font-bold">❯</span>
-  </button>
-</div>
+            <button 
+              onClick={() => handleScroll(topRatedRowRef, 'right')}
+              className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
+            >
+              <span className="text-xl font-bold">❯</span>
+            </button>
+          </div>
 
           {/* Row 3: Anime Movies */}
           <div className="relative">
@@ -161,6 +164,39 @@ const Home = () => {
 
             <button 
               onClick={() => handleScroll(animeRowRef, 'right')}
+              className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
+            >
+              <span className="text-xl font-bold">❯</span>
+            </button>
+          </div>
+
+          {/* Row 4: 📺 Trending Series (2026) */}
+          <div className="relative">
+            <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-purple-600 pl-3">
+              Trending Series (2026)
+            </h2>
+
+            <button 
+              onClick={() => handleScroll(seriesRowRef, 'left')}
+              className="absolute left-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-r-lg border border-l-0 border-white/10 transition duration-200"
+            >
+              <span className="text-xl font-bold">❮</span>
+            </button>
+
+            <div 
+              ref={seriesRowRef}
+              className="flex gap-5 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {trendingSeries.map((series) => (
+                <div key={series.id} className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px]">
+                  <MovieCard movie={series} />
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => handleScroll(seriesRowRef, 'right')}
               className="absolute right-0 top-[55%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/95 text-white h-24 w-10 flex items-center justify-center rounded-l-lg border border-r-0 border-white/10 transition duration-200"
             >
               <span className="text-xl font-bold">❯</span>
