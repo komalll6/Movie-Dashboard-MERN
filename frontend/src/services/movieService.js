@@ -230,3 +230,301 @@ export const movieService = {
     }
   }
 };
+
+
+// //series 
+// import api from "./api";
+
+// // Helper function to interleave lists cleanly for Category Page mixed views
+// const interleaveMovies = (...lists) => {
+//   const mixed = [];
+//   const maxLen = Math.max(...lists.map(l => l.length));
+//   for (let i = 0; i < maxLen; i++) {
+//     lists.forEach(list => {
+//       if (list[i]) mixed.push(list[i]);
+//     });
+//   }
+//   return mixed;
+// };
+
+// export const movieService = {
+//   // 1. Get Trending Movies (Returns pure array for Home component)
+//   getTrending: async (timeWindow = "day") => {
+//     try {
+//       const response = await api.get(`/trending/movie/${timeWindow}`);
+//       return response.data.results || [];
+//     } catch (e) {
+//       return [];
+//     }
+//   },
+
+//   // 2. Standard Popular Movies
+//   getPopular: async (page = 1) => {
+//     try {
+//       const response = await api.get("/movie/popular", { params: { page } });
+//       return response.data.results || [];
+//     } catch (e) {
+//       return [];
+//     }
+//   },
+
+//   // 3. Standard Top Rated Movies
+//   getTopRated: async (page = 1) => {
+//     try {
+//       const response = await api.get("/movie/top_rated", { params: { page } });
+//       return response.data.results || [];
+//     } catch (e) {
+//       return [];
+//     }
+//   },
+
+//   // 4. Standard Anime Collection
+//   getAnime: async (page = 1) => {
+//     try {
+//       const response = await api.get("/discover/movie", {
+//         params: {
+//           with_genres: 16,
+//           with_original_language: "ja",
+//           sort_by: "popularity.desc",
+//           page
+//         }
+//       });
+//       return response.data.results || [];
+//     } catch (e) {
+//       return [];
+//     }
+//   },
+
+//   // 5. Standard Bollywood Endpoint
+//   getTopRatedBollywood: async (page = 1) => {
+//     try {
+//       const response = await api.get("/discover/movie", {
+//         params: {
+//           page,
+//           region: "IN",
+//           with_original_language: "hi",
+//           sort_by: "popularity.desc"
+//         },
+//       });
+//       return response.data.results || [];
+//     } catch (error) {
+//       return [];
+//     }
+//   },
+
+//   // ==========================================
+//   // MULTI-INDUSTRY MIXED MOVIES FOR CATEGORY PAGE
+//   // ==========================================
+
+//   getPopularMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood, south] = await Promise.all([
+//         api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "en" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta|ml|kn" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0) + (south.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   getTopRatedMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood, south] = await Promise.all([
+//         api.get("/movie/top_rated", { params: { page, with_original_language: "en" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "vote_average.desc", "vote_count.gte": 100, with_original_language: "hi" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "vote_average.desc", "vote_count.gte": 100, with_original_language: "te|ta|ml|kn" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0) + (south.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   discoverAllMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood, south] = await Promise.all([
+//         api.get("/discover/movie", { params: { page, sort_by: "revenue.desc", with_original_language: "en" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+//         api.get("/discover/movie", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], south.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, south.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0) + (south.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   getAnimeMixedObject: async (page = 1) => {
+//     try {
+//       const response = await api.get("/discover/movie", {
+//         params: { with_genres: 16, with_original_language: "ja", sort_by: "popularity.desc", page }
+//       });
+//       return {
+//         results: response.data.results || [],
+//         total_pages: response.data.total_pages || 1,
+//         total_results: response.data.total_results || 0
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   // ==========================================
+//   // 📺 MULTI-INDUSTRY MIXED TV SHOWS (HOLLYWOOD + BOLLYWOOD + REGIONAL)
+//   // ==========================================
+
+//   // 1. DISCOVER SERIES (Hollywood + Bollywood + South/Regional)
+//   getTVDiscoverMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood, regional] = await Promise.all([
+//         api.get("/discover/tv", { params: { page, sort_by: "popularity.desc", with_original_language: "en" } }),
+//         api.get("/discover/tv", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+//         api.get("/discover/tv", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta|ml|kn" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], regional.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, regional.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0) + (regional.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   // 2. POPULAR SERIES (Hollywood + Bollywood + Regional Hits)
+//   getTVPopularMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood, regional] = await Promise.all([
+//         api.get("/tv/popular", { params: { page, with_original_language: "en" } }),
+//         api.get("/discover/tv", { params: { page, sort_by: "popularity.desc", with_original_language: "hi" } }),
+//         api.get("/discover/tv", { params: { page, sort_by: "popularity.desc", with_original_language: "te|ta|ml" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || [], regional.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1, regional.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0) + (regional.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   // 3. AIRING TODAY SERIES (Episodes Airing Today Across All Industries)
+//   getTVAiringTodayMixedObject: async (page = 1) => {
+//     try {
+//       const response = await api.get("/tv/airing_today", { params: { page } });
+//       return {
+//         results: response.data.results || [],
+//         total_pages: response.data.total_pages || 1,
+//         total_results: response.data.total_results || 0
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   // 4. TOP RATED SERIES (Highest Rating Hollywood & Bollywood Series)
+//   getTVTopRatedMixedObject: async (page = 1) => {
+//     try {
+//       const [hollywood, bollywood] = await Promise.all([
+//         api.get("/tv/top_rated", { params: { page } }),
+//         api.get("/discover/tv", { params: { page, sort_by: "vote_average.desc", "vote_count.gte": 50, with_original_language: "hi" } })
+//       ]);
+//       return {
+//         results: interleaveMovies(hollywood.data.results || [], bollywood.data.results || []),
+//         total_pages: Math.max(hollywood.data.total_pages || 1, bollywood.data.total_pages || 1),
+//         total_results: (hollywood.data.total_results || 0) + (bollywood.data.total_results || 0)
+//       };
+//     } catch (e) {
+//       return { results: [], total_pages: 1, total_results: 0 };
+//     }
+//   },
+
+//   // Helper method for TV routing
+//   getTVCategory: async (categoryType, page = 1) => {
+//     if (categoryType === 'tv_discover') return await movieService.getTVDiscoverMixedObject(page);
+//     if (categoryType === 'tv_popular') return await movieService.getTVPopularMixedObject(page);
+//     if (categoryType === 'tv_airing_today') return await movieService.getTVAiringTodayMixedObject(page);
+//     if (categoryType === 'tv_top_rated') return await movieService.getTVTopRatedMixedObject(page);
+//     return await movieService.getTVDiscoverMixedObject(page);
+//   },
+
+//   // 6. Polymorphic Details Fetcher
+//   getMovieDetails: async (movieId) => {
+//     try {
+//       const urlParams = new URLSearchParams(window.location.search);
+//       const contentType = urlParams.get('type');
+
+//       if (contentType === 'tv') {
+//         const tvResponse = await api.get(`/tv/${movieId}`, {
+//           params: { append_to_response: "videos,credits,recommendations" },
+//         });
+//         return {
+//           ...tvResponse.data,
+//           title: tvResponse.data.name,
+//           release_date: tvResponse.data.first_air_date,
+//           number_of_seasons: tvResponse.data.number_of_seasons,
+//           number_of_episodes: tvResponse.data.number_of_episodes,
+//           isTVSeries: true
+//         };
+//       }
+
+//       const response = await api.get(`/movie/${movieId}`, {
+//         params: { append_to_response: "videos,credits,recommendations" },
+//       });
+//       return response.data;
+//     } catch (movieError) {
+//       try {
+//         const tvResponse = await api.get(`/tv/${movieId}`, {
+//           params: { append_to_response: "videos,credits,recommendations" },
+//         });
+//         return {
+//           ...tvResponse.data,
+//           title: tvResponse.data.name,
+//           release_date: tvResponse.data.first_air_date,
+//           number_of_seasons: tvResponse.data.number_of_seasons,
+//           number_of_episodes: tvResponse.data.number_of_episodes,
+//           isTVSeries: true
+//         };
+//       } catch (tvError) {
+//         throw tvError;
+//       }
+//     }
+//   },
+
+//   // 7. Dynamic Episodes Fetcher
+//   getSeasonEpisodes: async (tvId, seasonNumber) => {
+//     try {
+//       const response = await api.get(`/tv/${tvId}/season/${seasonNumber}`);
+//       return response.data.episodes || [];
+//     } catch (error) {
+//       console.error("Error fetching season episodes:", error);
+//       return [];
+//     }
+//   },
+
+//   // 8. Fetch Trending TV Series 
+//   getTrendingSeries2026: async (page = 1) => {
+//     try {
+//       const response = await api.get("/discover/tv", {
+//         params: { page, sort_by: "popularity.desc" }
+//       });
+//       return response.data.results || [];
+//     } catch (error) {
+//       return [];
+//     }
+//   }
+// };

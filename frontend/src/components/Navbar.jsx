@@ -228,14 +228,14 @@ const Navbar = () => {
           <div className="relative group py-2">
             <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer transition group-hover:bg-white/10 group-hover:text-white">
               <Tv className="w-4 h-4" />
-              <span>Shows</span>
+              <span>Series</span>
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" />
             </button>
 
             <div className="absolute top-full left-0 w-[550px] bg-[#131217] border border-white/10 rounded-xl p-6 shadow-2xl pointer-events-none opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex items-center gap-2 text-white font-bold mb-1">
                 <Tv className="w-5 h-5 text-blue-500" />
-                <h3>Tv Shows</h3>
+                <h3>OTT Series</h3>
               </div>
               <p className="text-xs text-gray-400 mb-6">Discover premium web series, television epics and reality shows.</p>
               
