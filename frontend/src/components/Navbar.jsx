@@ -203,7 +203,7 @@ const Navbar = () => {
               <ChevronDown className="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" />
             </button>
 
-            {/* MEGA MENU: MOVIES (Cleaned Up) */}
+            {/* MEGA MENU: MOVIES */}
             <div className="absolute top-full left-0 w-[550px] bg-[#131217] border border-white/10 rounded-xl p-6 shadow-2xl pointer-events-none opacity-0 translate-y-2 transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0">
               <div className="flex items-center gap-2 text-white font-bold mb-1">
                 <Film className="w-5 h-5 text-red-500" />
@@ -240,10 +240,10 @@ const Navbar = () => {
               <p className="text-xs text-gray-400 mb-6">Discover premium web series, television epics and reality shows.</p>
               
               <div className="grid grid-cols-2 gap-4">
-                <Link to="/movie/category/tv_discover"><DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Explore premium dynamic series." badge="NEW" /></Link>
-                <Link to="/movie/category/tv_popular"><DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Shows that people love right now." /></Link>
-                <Link to="/movie/category/tv_airing_today"><DropdownItem icon={<Tv2 className="w-4 h-4 text-emerald-400" />} title="Airing Today" desc="Episodes running on air tonight." /></Link>
-                <Link to="/movie/category/tv_top_rated"><DropdownItem icon={<Star className="w-4 h-4 text-yellow-400" />} title="Top Rated" desc="Top regular running broadcasts." /></Link>
+                <Link to="/series/category/tv_discover"><DropdownItem icon={<Compass className="w-4 h-4 text-purple-400" />} title="Discover" desc="Explore premium dynamic series." badge="NEW" /></Link>
+                <Link to="/series/category/tv_popular"><DropdownItem icon={<Flame className="w-4 h-4 text-orange-400" />} title="Popular" desc="Shows that people love right now." /></Link>
+                <Link to="/series/category/tv_airing_today"><DropdownItem icon={<Tv2 className="w-4 h-4 text-emerald-400" />} title="Airing Today" desc="Episodes running on air tonight." /></Link>
+                <Link to="/series/category/tv_top_rated"><DropdownItem icon={<Star className="w-4 h-4 text-yellow-400" />} title="Top Rated" desc="Top regular running broadcasts." /></Link>
               </div>
             </div>
           </div>
@@ -263,10 +263,18 @@ const Navbar = () => {
               </div>
               <p className="text-xs text-gray-400 mb-4">Stay in loop with global internet choices right now.</p>
               
-              <div className="space-y-3">
-                <Link to="/movie/category/trending_movie"><DropdownItem icon={<Film className="w-4 h-4 text-red-400" />} title="Trending Movies" desc="Hot movies today." /></Link>
-                <Link to="/movie/category/trending_tv"><DropdownItem icon={<Tv className="w-4 h-4 text-blue-400" />} title="Trending Shows" desc="Most watched web-series." /></Link>
-              </div>
+              {/* 🔥 TRENDING HOVER GROUP inside Navbar.jsx */}
+<div className="space-y-3">
+  <Link to="/movie/category/trending_movie">
+    <DropdownItem icon={<Film className="w-4 h-4 text-red-400" />} title="Trending Movies" desc="Hot movies today." />
+  </Link>
+  
+  {/* BAD: /series/category/trending_tv */}
+  {/* GOOD: /movie/category/trending_tv */}
+  <Link to="/movie/category/trending_tv">
+    <DropdownItem icon={<Tv className="w-4 h-4 text-blue-400" />} title="Trending Shows" desc="Most watched web-series." />
+  </Link>
+</div>
             </div>
           </div>
 

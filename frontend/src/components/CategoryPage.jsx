@@ -1,31 +1,196 @@
 // movies dowpdown vaha 
+// import React, { useState, useEffect } from 'react';
+// import { useParams } from 'react-router-dom';
+// import { movieService } from '../services/movieService'; 
+// import { ChevronLeft, ChevronRight } from 'lucide-react';
+// import MovieCard from './MovieCard';
+
+// const CategoryPage = () => {
+//   const { type } = useParams();
+//   const [items, setItems] = useState([]);
+//   const [loading, setLoading] = useState(true);
+  
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [totalPages, setTotalPages] = useState(1);
+
+//   const getCategoryTitle = (catType) => {
+//     const titles = {
+//       discover: "Discover Global Movies",
+//       top_rated: "Top Rated Global Masterpieces",
+//       popular: "Popular Movies Globally",
+//       anime: "Anime & Animation Specials"
+//     };
+//     return titles[catType] || "Explore Movies";
+//   };
+
+//   useEffect(() => {
+//     setCurrentPage(1);
+//   }, [type]);
+
+//   useEffect(() => {
+//     const fetchCategoryData = async () => {
+//       setLoading(true);
+//       try {
+//         let responsePayload;
+        
+//         // Dynamic redirection to separate targeted object wrapper schemas
+//         if (type === 'anime') {
+//           responsePayload = await movieService.getAnimeMixedObject(currentPage);
+//         } else if (type === 'popular') {
+//           responsePayload = await movieService.getPopularMixedObject(currentPage);
+//         } else if (type === 'top_rated') {
+//           responsePayload = await movieService.getTopRatedMixedObject(currentPage);
+//         } else if (type === 'discover') {
+//           responsePayload = await movieService.discoverAllMixedObject(currentPage); 
+//         } else {
+//           const rawTrending = await movieService.getTrending("day");
+//           responsePayload = { results: rawTrending, total_pages: 1 };
+//         }
+
+//         if (responsePayload && responsePayload.results) {
+//           setItems(responsePayload.results);
+//           setTotalPages(responsePayload.total_pages || 1);
+//         } else {
+//           setItems([]);
+//           setTotalPages(1);
+//         }
+
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//       } catch (error) {
+//         console.error("Critical Component State Hydration Failure: ", error);
+//         setItems([]);
+//         setTotalPages(1);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchCategoryData();
+//   }, [type, currentPage]);
+
+//   const handleNext = () => {
+//     if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+//   };
+
+//   const handlePrev = () => {
+//     if (currentPage > 1) setCurrentPage(prev => prev - 1);
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen bg-[#0d0c0f] pt-32 px-6 md:px-12 text-center text-gray-400">
+//         <div className="animate-pulse space-y-4">
+//           <div className="h-8 bg-white/5 w-1/4 mx-auto rounded"></div>
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 pt-12">
+//             {[...Array(12)].map((_, i) => (
+//               <div key={i} className="h-80 bg-white/5 rounded-2xl"></div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-[#0d0c0f] text-white pt-32 px-6 md:px-12 pb-16 font-sans">
+      
+//       <div className="mb-10 pb-6 border-b border-white/5">
+//         <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 uppercase">
+//           {getCategoryTitle(type)}
+//         </h1>
+//         <p className="text-xs text-gray-400 font-light">
+//           Viewing dynamically sorted multi-industry mixed cinema database catalogues.
+//         </p>
+//       </div>
+
+//       {items.length === 0 ? (
+//         <div className="text-center py-20 text-gray-500 text-sm">
+//           No records found for the requested context pipeline.
+//         </div>
+//       ) : (
+//         <>
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+//             {items.map((item, index) => (
+//               <MovieCard key={`${item.id}-${index}`} movie={item} />
+//             ))}
+//           </div>
+
+//           <div className="flex items-center justify-center gap-6 mt-16 pt-8 border-t border-white/5 select-none">
+//             <button 
+//               onClick={handlePrev}
+//               disabled={currentPage === 1}
+//               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-bold transition-all ${
+//                 currentPage === 1 
+//                   ? 'border-white/5 bg-white/5 text-gray-600 cursor-not-allowed' 
+//                   : 'border-white/10 bg-[#131217] text-gray-200 hover:bg-white/5 cursor-pointer'
+//               }`}
+//             >
+//               <ChevronLeft className="w-4 h-4" />
+//               <span>Previous</span>
+//             </button>
+
+//             <span className="text-sm font-medium text-gray-400">
+//               Page <span className="text-white font-bold">{currentPage}</span> of <span className="text-white/60 font-bold">{totalPages}</span>
+//             </span>
+
+//             <button 
+//               onClick={handleNext}
+//               disabled={currentPage >= totalPages}
+//               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-bold transition-all ${
+//                 currentPage >= totalPages 
+//                   ? 'border-white/5 bg-white/5 text-gray-600 cursor-not-allowed' 
+//                   : 'border-white/10 bg-[#131217] text-gray-200 hover:bg-white/5 cursor-pointer'
+//               }`}
+//             >
+//               <span>Next</span>
+//               <ChevronRight className="w-4 h-4" />
+//             </button>
+//           </div>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default CategoryPage;
+
+//series
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { movieService } from '../services/movieService'; 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
 
 const CategoryPage = () => {
   const { type } = useParams();
+  const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const isSeriesCategory = location.pathname.includes('/series/') || (type && type.startsWith('tv_')) || type === 'trending_tv';
+
   const getCategoryTitle = (catType) => {
     const titles = {
       discover: "Discover Global Movies",
       top_rated: "Top Rated Global Masterpieces",
       popular: "Popular Movies Globally",
-      anime: "Anime & Animation Specials"
+      anime: "Anime & Animation Specials",
+      trending_movie: "Trending Movies Globally",
+      tv_discover: "Discover Global Series",
+      tv_popular: "Popular TV Series",
+      tv_airing_today: "Airing Today Series",
+      tv_top_rated: "Top Rated TV Series",
+      trending_tv: "Trending Shows & Serials"
     };
-    return titles[catType] || "Explore Movies";
+    return titles[catType] || (isSeriesCategory ? "Explore TV Series" : "Explore Movies");
   };
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [type]);
+  }, [type, location.pathname]);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -33,8 +198,17 @@ const CategoryPage = () => {
       try {
         let responsePayload;
         
-        // Dynamic redirection to separate targeted object wrapper schemas
-        if (type === 'anime') {
+        if (type === 'tv_discover') {
+          responsePayload = await movieService.getTVDiscoverMixedObject(currentPage);
+        } else if (type === 'tv_popular') {
+          responsePayload = await movieService.getTVPopularMixedObject(currentPage);
+        } else if (type === 'tv_airing_today') {
+          responsePayload = await movieService.getTVAiringTodayMixedObject(currentPage);
+        } else if (type === 'tv_top_rated') {
+          responsePayload = await movieService.getTVTopRatedMixedObject(currentPage);
+        } else if (type === 'trending_tv') {
+          responsePayload = await movieService.getTrendingTVMixedObject(currentPage);
+        } else if (type === 'anime') {
           responsePayload = await movieService.getAnimeMixedObject(currentPage);
         } else if (type === 'popular') {
           responsePayload = await movieService.getPopularMixedObject(currentPage);
@@ -42,13 +216,19 @@ const CategoryPage = () => {
           responsePayload = await movieService.getTopRatedMixedObject(currentPage);
         } else if (type === 'discover') {
           responsePayload = await movieService.discoverAllMixedObject(currentPage); 
+        } else if (type === 'trending_movie') {
+          responsePayload = await movieService.getTrendingMoviesMixedObject(currentPage);
         } else {
           const rawTrending = await movieService.getTrending("day");
           responsePayload = { results: rawTrending, total_pages: 1 };
         }
 
         if (responsePayload && responsePayload.results) {
-          setItems(responsePayload.results);
+          const processed = responsePayload.results.map(item => ({
+            ...item,
+            is_series: isSeriesCategory || !!item.first_air_date
+          }));
+          setItems(processed);
           setTotalPages(responsePayload.total_pages || 1);
         } else {
           setItems([]);
@@ -66,7 +246,7 @@ const CategoryPage = () => {
     };
 
     fetchCategoryData();
-  }, [type, currentPage]);
+  }, [type, currentPage, location.pathname]);
 
   const handleNext = () => {
     if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
@@ -94,13 +274,15 @@ const CategoryPage = () => {
   return (
     <div className="min-h-screen bg-[#0d0c0f] text-white pt-32 px-6 md:px-12 pb-16 font-sans">
       
-      <div className="mb-10 pb-6 border-b border-white/5">
-        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 uppercase">
-          {getCategoryTitle(type)}
-        </h1>
-        <p className="text-xs text-gray-400 font-light">
-          Viewing dynamically sorted multi-industry mixed cinema database catalogues.
-        </p>
+      <div className="mb-10 pb-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2 uppercase">
+            {getCategoryTitle(type)}
+          </h1>
+          <p className="text-xs text-gray-400 font-light">
+            Viewing dynamically sorted multi-industry mixed {isSeriesCategory ? "TV Series" : "Cinema"} catalogues.
+          </p>
+        </div>
       </div>
 
       {items.length === 0 ? (
