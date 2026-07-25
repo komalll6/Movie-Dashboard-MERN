@@ -3,39 +3,51 @@ import { movieService } from '../services/movieService';
 import { useAppContext } from '../context/AppContext';
 
 const Hero = () => {
-  const { genres } = useAppContext();
+  // Safe Fallback: Prevents (intermediate value)() is undefined crash
+  const context = useAppContext() || {};
+  const genres = context.genres || [];
+
   const [trendingMovies, setTrendingMovies] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Step 1: Ek hi baar mein saari 5 movies ke details aur logos pre-fetch karna
+  // Step 1: Pre-fetch details and logos for top 5 movies
   useEffect(() => {
     const fetchTrendingAndAssets = async () => {
       try {
         const rawData = await movieService.getTrending();
-        const topFive = rawData.slice(0, 5);
+        const topFive = rawData ? rawData.slice(0, 5) : [];
 
-        // Sabhi 5 movies ke logos aur details ko ek sath (parallelly) load karna
         const fullyLoadedMovies = await Promise.all(
           topFive.map(async (movie) => {
             try {
               // 1. Fetch runtime
               const details = await movieService.getMovieDetails(movie.id);
               
-              // 2. Fetch logos
-              const imageRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/images`, {
-                headers: {
-                  accept: 'application/json',
-                  Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`
+              // 2. Fetch logos safely
+              let logoUrl = null;
+              try {
+                const imageRes = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/images`, {
+                  headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`
+                  }
+                });
+                if (imageRes.ok) {
+                  const imageData = await imageRes.json();
+                  const englishLogo = imageData.logos?.find(l => l.iso_639_1 === 'en');
+                  if (englishLogo) {
+                    logoUrl = `https://image.tmdb.org/t/p/w500${englishLogo.file_path}`;
+                  }
                 }
-              });
-              const imageData = await imageRes.json();
-              const englishLogo = imageData.logos?.find(l => l.iso_639_1 === 'en');
+              } catch (imgErr) {
+                console.warn(`Logo fetch skipped for ${movie.id}`);
+              }
               
               return {
                 ...movie,
                 runtime: details?.runtime || null,
-                logoUrl: englishLogo ? `https://image.tmdb.org/t/p/w500${englishLogo.file_path}` : null
+                logoUrl
               };
             } catch (err) {
               console.error(`Error pre-fetching assets for movie ${movie.id}:`, err);
@@ -55,7 +67,7 @@ const Hero = () => {
     fetchTrendingAndAssets();
   }, []);
 
-  // Step 2: Exact 5-Second Interval Slider
+  // Step 2: 5-Second Interval Slider
   useEffect(() => {
     if (trendingMovies.length === 0) return;
     const interval = setInterval(() => {
@@ -75,7 +87,9 @@ const Hero = () => {
   if (trendingMovies.length === 0) return null;
 
   const currentMovie = trendingMovies[currentIndex];
-  const imageUrl = `https://image.tmdb.org/t/p/original${currentMovie.backdrop_path}`;
+  const imageUrl = currentMovie.backdrop_path 
+    ? `https://image.tmdb.org/t/p/original${currentMovie.backdrop_path}`
+    : '';
 
   const releaseYear = currentMovie.release_date 
     ? currentMovie.release_date.split('-')[0] 
@@ -97,16 +111,17 @@ const Hero = () => {
   };
 
   return (
-    // 'key={currentIndex}' lagane se background transition aur fade animations aapas mein perfect sync ho jaayengi
     <div key={currentIndex} className="relative h-[550px] w-full rounded-3xl overflow-hidden mb-12 shadow-2xl group animate-fadeIn">
       
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img 
-          src={imageUrl} 
-          alt={currentMovie.title || currentMovie.name} 
-          className="w-full h-full object-cover transition-transform duration-[5000ms] ease-out scale-100 group-hover:scale-105"
-        />
+        {imageUrl && (
+          <img 
+            src={imageUrl} 
+            alt={currentMovie.title || currentMovie.name} 
+            className="w-full h-full object-cover transition-transform duration-[5000ms] ease-out scale-100 group-hover:scale-105"
+          />
+        )}
       </div>
       
       {/* Premium Cinematic Vignette Overlays */}
@@ -117,7 +132,7 @@ const Hero = () => {
       {/* Main Content Container */}
       <div className="absolute bottom-12 left-12 md:left-16 max-w-2xl z-10 select-none">
         
-        {/* Elegant Metadata Row */}
+        {/* Metadata Row */}
         <div className="flex flex-wrap items-center gap-3 text-gray-300 text-sm font-medium mb-3 tracking-wide">
           {movieGenres && <span>{movieGenres}</span>}
           {movieGenres && <span className="text-gray-600">•</span>}
@@ -133,7 +148,7 @@ const Hero = () => {
           )}
         </div>
 
-        {/* Dynamic Title / Logo Container (Ekdam sync mein render hoga, koi gap nahi) */}
+        {/* Dynamic Title / Logo */}
         <div className="mb-6 flex items-center h-auto min-h-[60px]">
           {currentMovie.logoUrl ? (
             <img 
@@ -148,10 +163,12 @@ const Hero = () => {
           )}
         </div>
 
-        {/* Italicized & Deep Description */}
-        <p className="text-gray-300/90 text-base md:text-lg italic font-light leading-relaxed mb-8 line-clamp-3 max-w-xl border-l-2 border-red-600 pl-4">
-          "{currentMovie.overview}"
-        </p>
+        {/* Description */}
+        {currentMovie.overview && (
+          <p className="text-gray-300/90 text-base md:text-lg italic font-light leading-relaxed mb-8 line-clamp-3 max-w-xl border-l-2 border-red-600 pl-4">
+            "{currentMovie.overview}"
+          </p>
+        )}
 
         {/* Action Button */}
         <div className="flex gap-4">
