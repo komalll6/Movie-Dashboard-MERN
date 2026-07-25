@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import MovieDetail from "./components/MovieDetail"; 
 import Navbar from "./components/Navbar";
 import CategoryPage from './components/CategoryPage';
+import SearchResults from './pages/searchresult.jsx';
 
 function App() {
   return (
@@ -13,6 +14,9 @@ function App() {
       <Routes>
         {/* Home */}
         <Route path="/" element={<Home />} />
+
+        {/* Search Route */}
+        <Route path="/search" element={<SearchResults />} />
 
         {/* Movie Routes */}
         <Route path="/movie/:id" element={<MovieDetail />} />

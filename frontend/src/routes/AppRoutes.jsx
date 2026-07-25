@@ -21,14 +21,40 @@
 // export default AppRoutes;
 
 //series
+// import React from 'react';
+// import { Routes, Route } from 'react-router-dom';
+// import MovieDetail from '../components/MovieDetail';
+// import CategoryPage from '../components/CategoryPage';
+
+// const AppRoutes = () => {
+//   return (
+//     <Routes>
+//       {/* Movie Routes */}
+//       <Route path="/movie/:id" element={<MovieDetail />} />
+//       <Route path="/movie/category/:type" element={<CategoryPage />} />
+
+//       {/* Series Routes */}
+//       <Route path="/series/:id" element={<MovieDetail />} />
+//       <Route path="/series/category/:type" element={<CategoryPage />} />
+//     </Routes>
+//   );
+// };
+
+// export default AppRoutes;
+
+//new 25-07
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MovieDetail from '../components/MovieDetail';
 import CategoryPage from '../components/CategoryPage';
+import SearchResults from '../pages/SearchResults'; // 👈 Route linked here
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Search Route */}
+      <Route path="/search" element={<SearchResults />} />
+
       {/* Movie Routes */}
       <Route path="/movie/:id" element={<MovieDetail />} />
       <Route path="/movie/category/:type" element={<CategoryPage />} />

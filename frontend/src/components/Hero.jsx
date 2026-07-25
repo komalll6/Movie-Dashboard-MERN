@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // 👈 Imported Link
 import { movieService } from '../services/movieService';
 import { useAppContext } from '../context/AppContext';
 
@@ -170,12 +171,14 @@ const Hero = () => {
           </p>
         )}
 
-        {/* Action Button */}
+        {/* 🟢 Action Button Wrapped with Link */}
         <div className="flex gap-4">
-          <button className="bg-red-600 hover:bg-red-700 hover:scale-[1.03] active:scale-95 text-white font-bold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-3 shadow-lg shadow-red-600/20">
-            <span>Explore Movies</span>
-            <span className="text-lg transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </button>
+          <Link to="/movie/category/trending_movie">
+            <button className="bg-red-600 hover:bg-red-700 hover:scale-[1.03] active:scale-95 text-white font-bold px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-3 shadow-lg shadow-red-600/20 cursor-pointer">
+              <span>Explore Movies</span>
+              <span className="text-lg transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </button>
+          </Link>
         </div>
       </div>
 
