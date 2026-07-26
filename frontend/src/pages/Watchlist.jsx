@@ -165,7 +165,7 @@
 
 
 //NEW
-  import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, Trash2, Heart, ArrowLeft } from 'lucide-react';
 
@@ -261,12 +261,17 @@ const Watchlist = () => {
           /* Cards Grid */
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
             {watchlist.map((item) => {
-              const isSeries = item.media_type === 'series' || item.first_air_date;
-              const targetRoute = isSeries ? `/series/${item.id}` : `/movie/${item.id}`;
+              // Precise Media Type Resolution
+              const isMovie = 
+                item.media_type === 'movie' || 
+                Boolean(item.release_date) || 
+                Boolean(item.title) && item.media_type !== 'tv';
+
+              const targetRoute = isMovie ? `/movie/${item.id}` : `/series/${item.id}`;
               const displayTitle = item.title || item.name || 'Untitled';
               const releaseYear = item.release_date || item.first_air_date 
                 ? new Date(item.release_date || item.first_air_date).getFullYear() 
-                : '2026';
+                : 'N/A';
 
               return (
                 <div 
@@ -313,7 +318,7 @@ const Watchlist = () => {
                     <div className="flex items-center justify-between mt-2 text-[10px] text-gray-400 font-semibold">
                       <span>{releaseYear}</span>
                       <span className="bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider text-gray-300">
-                        {isSeries ? 'TV SHOW' : 'MOVIE'}
+                        {isMovie ? 'MOVIE' : 'TV SHOW'}
                       </span>
                     </div>
                   </div>
