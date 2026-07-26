@@ -55,8 +55,9 @@ const MovieDetail = () => {
         }
 
         if (details) {
-          const currentFavs = JSON.parse(localStorage.getItem('favMovies')) || [];
-          const exists = currentFavs.some(item => item.id === details.id);
+          // Check both keys for favorite status
+          const currentFavs = JSON.parse(localStorage.getItem('favMovies')) || JSON.parse(localStorage.getItem('watchlist')) || [];
+          const exists = currentFavs.some(item => String(item.id) === String(details.id));
           setIsFavorite(exists);
         }
 
@@ -96,20 +97,37 @@ const MovieDetail = () => {
 
   const toggleFavorite = () => {
     if (!movie) return;
-    let currentFavs = JSON.parse(localStorage.getItem('favMovies')) || [];
+    
+    // Check both local storage keys for maximum compatibility
+    let currentFavs = JSON.parse(localStorage.getItem('favMovies')) || JSON.parse(localStorage.getItem('watchlist')) || [];
+    
     if (isFavorite) {
-      currentFavs = currentFavs.filter(item => item.id !== movie.id);
+      currentFavs = currentFavs.filter(item => String(item.id) !== String(movie.id));
       setIsFavorite(false);
     } else {
-      currentFavs.push({
+      const newItem = {
         id: movie.id,
         title: movie.title || movie.name,
+        name: movie.name || movie.title,
         poster_path: movie.poster_path,
-        vote_average: movie.vote_average
-      });
+        backdrop_path: movie.backdrop_path,
+        vote_average: movie.vote_average,
+        release_date: movie.release_date || movie.first_air_date,
+        first_air_date: movie.first_air_date || movie.release_date,
+        media_type: isSeries ? 'series' : 'movie'
+      };
+      
+      currentFavs.push(newItem);
       setIsFavorite(true);
     }
+    
+    // Sync to both localStorage keys
     localStorage.setItem('favMovies', JSON.stringify(currentFavs));
+    localStorage.setItem('watchlist', JSON.stringify(currentFavs));
+    
+    // Notify navbar and watchlist page of update
+    window.dispatchEvent(new Event('favUpdated'));
+    window.dispatchEvent(new Event('watchlistUpdated'));
   };
 
   if (loading) {
@@ -207,12 +225,12 @@ const MovieDetail = () => {
                 onClick={toggleFavorite}
                 className={`font-semibold text-sm px-5 py-2.5 rounded-lg flex items-center gap-2 cursor-pointer transition border ${
                   isFavorite 
-                    ? 'bg-pink-600/10 border-pink-500/30 text-pink-500 hover:bg-pink-600/20' 
+                    ? 'bg-pink-600/20 border-pink-500 text-pink-500 hover:bg-pink-600/30' 
                     : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                 }`}
               >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-pink-500' : ''}`} />
-                {isFavorite ? 'Favorited' : 'Like'}
+                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-pink-500 text-pink-500' : ''}`} />
+                {isFavorite ? 'Favorited' : 'Add to Watchlist'}
               </button>
             </div>
 

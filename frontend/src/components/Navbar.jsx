@@ -164,12 +164,14 @@
 
 //new 25-07 => adding searchbar
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Film, Tv, TrendingUp, Compass, Flame, Star, ChevronDown, Disc, Tv2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Film, Tv, TrendingUp, Compass, Flame, Star, ChevronDown, Disc, Tv2, Heart } from 'lucide-react';
 import SearchBar from './SearchBar'; // 👈 Dynamic SearchBar Imported
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [favCount, setFavCount] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -181,6 +183,23 @@ const Navbar = () => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Update watchlist count from localStorage
+  useEffect(() => {
+    const updateCount = () => {
+      const favs = JSON.parse(localStorage.getItem('favMovies')) || [];
+      setFavCount(favs.length);
+    };
+
+    updateCount();
+    window.addEventListener('storage', updateCount);
+    window.addEventListener('favUpdated', updateCount);
+
+    return () => {
+      window.removeEventListener('storage', updateCount);
+      window.removeEventListener('favUpdated', updateCount);
+    };
   }, []);
 
   return (
@@ -290,6 +309,20 @@ const Navbar = () => {
         <div className="hidden sm:block">
           <SearchBar />
         </div>
+
+        {/* ❤️ Watchlist / Favorites Button */}
+        <button 
+          onClick={() => navigate('/watchlist')}
+          className="relative p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-300 hover:text-red-500 transition duration-200 cursor-pointer flex items-center justify-center"
+          title="Watchlist"
+        >
+          <Heart className="w-4 h-4" />
+          {favCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center shadow-md">
+              {favCount}
+            </span>
+          )}
+        </button>
 
         <button className="bg-red-600 hover:bg-red-700 text-white text-sm px-5 py-2 rounded-lg font-medium transition duration-200 shadow-md shadow-red-600/20 cursor-pointer">
           Sign In

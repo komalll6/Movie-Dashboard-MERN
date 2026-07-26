@@ -6,6 +6,7 @@ import MovieDetail from "./components/MovieDetail";
 import Navbar from "./components/Navbar";
 import CategoryPage from './components/CategoryPage';
 import SearchResults from './pages/searchresult.jsx';
+import Watchlist from './pages/Watchlist.jsx';
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
         {/* Search Route */}
         <Route path="/search" element={<SearchResults />} />
 
+        {/* Watchlist Route */}
+        <Route path="/watchlist" element={<Watchlist />} /> {/* 👈 2. Route add kar diya */}
+
         {/* Movie Routes */}
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="/movie/category/:type" element={<CategoryPage />} />
@@ -28,6 +32,9 @@ function App() {
 
         {/* Fallback Category Route */}
         <Route path="/category/:type" element={<CategoryPage />} />
+
+        {/**wishlist */}
+        <Route path="/watchlist" element={<Watchlist />} />
       </Routes>
     </>
   );

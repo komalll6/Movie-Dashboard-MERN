@@ -47,13 +47,15 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MovieDetail from '../components/MovieDetail';
 import CategoryPage from '../components/CategoryPage';
-import SearchResults from '../pages/SearchResults'; // 👈 Route linked here
+import SearchResults from '../pages/SearchResults';
+import Watchlist from '../pages/Watchlist'; 
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Search Route */}
+      {/* Search & Watchlist Routes */}
       <Route path="/search" element={<SearchResults />} />
+      <Route path="/watchlist" element={<Watchlist />} />
 
       {/* Movie Routes */}
       <Route path="/movie/:id" element={<MovieDetail />} />
@@ -62,6 +64,7 @@ const AppRoutes = () => {
       {/* Series Routes */}
       <Route path="/series/:id" element={<MovieDetail />} />
       <Route path="/series/category/:type" element={<CategoryPage />} />
+      <Route path="/watchlist" element={<Watchlist />} />
     </Routes>
   );
 };
