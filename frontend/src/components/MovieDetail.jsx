@@ -24,6 +24,13 @@ const MovieDetail = () => {
   // Detect if current route is for a TV Series
   const isSeries = location.pathname.includes('/series/');
 
+  // 🔴 FIX: Scroll to top instantly whenever movie ID or route changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [id, location.pathname]);
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -83,6 +90,15 @@ const MovieDetail = () => {
     setShowTrailer(false);
     setSelectedSeason(1);
   }, [id, isSeries]);
+
+  // 🔴 FIX: Ensure page scrolls top after loading completes and DOM is rendered
+  useEffect(() => {
+    if (!loading) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [loading]);
 
   const handleSeasonChange = async (seasonNum) => {
     setSelectedSeason(seasonNum);

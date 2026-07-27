@@ -7,6 +7,7 @@ import CategoryPage from './components/CategoryPage';
 import SearchResults from './pages/searchresult.jsx';
 import Watchlist from './pages/Watchlist.jsx';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
