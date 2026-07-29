@@ -170,7 +170,7 @@ const Home = () => {
             </button>
           </div>
 
-          {/* Row 4: 📺 Trending Series (2026) */}
+          {/* Row 4: Trending Series (2026) */}
           <div className="relative">
             <h2 className="text-2xl font-bold mb-4 tracking-wide text-white border-l-4 border-purple-600 pl-3">
               Trending Series (2026)

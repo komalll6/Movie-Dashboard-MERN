@@ -82,10 +82,10 @@ export const movieService = {
   },
 
   // ==============================================================
-  // 🍿 MOVIES ENDPOINTS (FIXED DISCOVER VS POPULAR)
+  // MOVIES ENDPOINTS (FIXED DISCOVER VS POPULAR)
   // ==============================================================
 
-  // 🌟 NEW DISCOVER MOVIES: Shows newly released/discovered films
+  // NEW DISCOVER MOVIES: Shows newly released/discovered films
   discoverAllMixedObject: async (page = 1) => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -104,7 +104,7 @@ export const movieService = {
     } catch (e) { return { results: [], total_pages: 1 }; }
   },
 
-  // 🔥 MOST POPULAR MOVIES: Direct popular endpoints from TMDB
+  // MOST POPULAR MOVIES: Direct popular endpoints from TMDB
   getPopularMixedObject: async (page = 1) => {
     try {
       const response = await api.get("/movie/popular", { params: { page } });
@@ -148,10 +148,10 @@ export const movieService = {
   },
 
   // ==============================================================
-  // 📺 TV SERIES ENDPOINTS (FIXED DISCOVER VS POPULAR)
+  // TV SERIES ENDPOINTS (FIXED DISCOVER VS POPULAR)
   // ==============================================================
 
-  // 🌟 NEW DISCOVER TV SERIES: Recently premiered shows
+  // NEW DISCOVER TV SERIES: Recently premiered shows
   getTVDiscoverMixedObject: async (page = 1) => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -171,7 +171,7 @@ export const movieService = {
     } catch (e) { return { results: [], total_pages: 1 }; }
   },
 
-  // 🔥 MOST POPULAR TV SERIES: Global TMDB Popular TV list
+  // MOST POPULAR TV SERIES: Global TMDB Popular TV list
   getTVPopularMixedObject: async (page = 1) => {
     try {
       const response = await api.get("/tv/popular", { params: { page } });
