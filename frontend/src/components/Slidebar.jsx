@@ -10,6 +10,9 @@ function Slidebar({ activeGenre, setActiveGenre }) {
     "Comedy",
     "Horror",
     "Sci-Fi",
+    "Romance",
+    "Animation",
+    "Documentary",
   ];
 
   return (
