@@ -12,7 +12,6 @@ function Slidebar({ activeGenre, setActiveGenre }) {
     "Sci-Fi",
     "Romance",
     "Animation",
-    "Documentary",
   ];
 
   return (
