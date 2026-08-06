@@ -215,7 +215,7 @@ const Navbar = () => {
           to="/" 
           className="text-red-600 font-extrabold text-2xl tracking-wider cursor-pointer select-none block"
         >
-          MovieHub
+          KOMSIFY
         </Link>
 
         {/* Nav Links Items */}
