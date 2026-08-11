@@ -39,7 +39,8 @@
 //new- 06-08-26
 // 
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -48,14 +49,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem("user");
-      // "undefined" string ya invalid format aane par crash hone se bachata hai
       if (!savedUser || savedUser === "undefined") {
         return null;
       }
       return JSON.parse(savedUser);
     } catch (error) {
       console.error("Error parsing user from localStorage:", error);
-      localStorage.removeItem("user"); // Corrupted user data clean karta hai
+      localStorage.removeItem("user");
       return null;
     }
   });
@@ -69,11 +69,25 @@ export const AuthProvider = ({ children }) => {
     return savedToken;
   });
 
+  // Auth Modal State Management
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState("signin"); // "signin" or "signup"
+
+  const openAuthModal = (mode = "signin") => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
+
   const loginUser = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", userToken);
+    closeAuthModal(); // Close modal automatically on successful login
   };
 
   const logoutUser = () => {
@@ -83,8 +97,42 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
+  // Verify stored token with backend on initial load
+  useEffect(() => {
+    const verifyToken = async () => {
+      const savedToken = localStorage.getItem("token");
+      if (!savedToken) {
+        logoutUser();
+        return;
+      }
+
+      try {
+        await axios.get("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        });
+      } catch (error) {
+        console.warn("Session expired or token invalid. Clearing auth state.");
+        logoutUser();
+      }
+    };
+
+    verifyToken();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, loginUser, logoutUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loginUser,
+        logoutUser,
+        isAuthModalOpen,
+        authModalMode,
+        openAuthModal,
+        closeAuthModal,
+        setAuthModalMode,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
