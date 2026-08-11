@@ -62,15 +62,4 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/signin", signin);
 
-// Verify session route
-router.get("/me", (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized - No token provided" });
-  }
-
-  // Token is valid and present
-  res.status(200).json({ success: true, message: "Token is valid" });
-});
-
 export default router;

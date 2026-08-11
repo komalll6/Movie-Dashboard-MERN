@@ -215,42 +215,47 @@
 //   }
 // };
 
-
 import User from "../model/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// Signup Controller (Auto Token Return)
+// 🚀 1. SIGN UP (Naya User)
 export const signup = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
 
+    // Validation
     if (!userName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields (Username, Email, Password) are required!" });
     }
 
-    const existingUser = await User.findOne({ email });
+    // Check existing email
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this email" });
+      return res.status(400).json({ message: "This email is already registered. Please Sign In." });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Encrypt Password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Save to MongoDB
     const newUser = await User.create({
       userName,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
     });
 
+    // Generate JWT Token
     const token = jwt.sign(
-      { id: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET || "default_secret_key",
+      { id: newUser._id },
+      process.env.JWT_SECRET || "secretkey123",
       { expiresIn: "7d" }
     );
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully!",
+      message: "Account created successfully!",
       token,
       data: {
         id: newUser._id,
@@ -259,39 +264,42 @@ export const signup = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Signup Error:", error);
-    res.status(500).json({ message: "Server error during registration", error: error.message });
+    console.error("Signup Controller Error:", error);
+    res.status(500).json({ message: error.message || "Server Error during signup" });
   }
 };
 
-// Signin Controller (Must be named 'signin' exactly)
+// 🚀 2. SIGN IN (Existing User)
 export const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide both email and password" });
+      return res.status(400).json({ message: "Please enter Email and Password." });
     }
 
-    const user = await User.findOne({ email });
+    // Find User in MongoDB
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid Email or Password!" });
     }
 
+    // Password Match
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid Email or Password!" });
     }
 
+    // Generate JWT Token
     const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET || "default_secret_key",
+      { id: user._id },
+      process.env.JWT_SECRET || "secretkey123",
       { expiresIn: "7d" }
     );
 
     res.status(200).json({
       success: true,
-      message: "Login successful!",
+      message: "Signed in successfully!",
       token,
       data: {
         id: user._id,
@@ -300,7 +308,7 @@ export const signin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Signin Error:", error);
-    res.status(500).json({ message: "Server error during signin", error: error.message });
+    console.error("Signin Controller Error:", error);
+    res.status(500).json({ message: error.message || "Server Error during signin" });
   }
 };
