@@ -37,17 +37,37 @@
 // }
 
 //new- 06-08-26
-import { createContext, useContext, useState, useEffect } from "react";
+// 
+
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  // Safe JSON Parsing for User State
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    try {
+      const savedUser = localStorage.getItem("user");
+      // "undefined" string ya invalid format aane par crash hone se bachata hai
+      if (!savedUser || savedUser === "undefined") {
+        return null;
+      }
+      return JSON.parse(savedUser);
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      localStorage.removeItem("user"); // Corrupted user data clean karta hai
+      return null;
+    }
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+  // Safe Token State Retrieval
+  const [token, setToken] = useState(() => {
+    const savedToken = localStorage.getItem("token");
+    if (!savedToken || savedToken === "undefined") {
+      return null;
+    }
+    return savedToken;
+  });
 
   const loginUser = (userData, userToken) => {
     setUser(userData);

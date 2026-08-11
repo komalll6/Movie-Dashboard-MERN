@@ -166,11 +166,61 @@
 // };
 
 
+// import User from "../model/User.js";
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
+
+// // Signup Controller with Auto-Token Generation
+// export const signup = async (req, res) => {
+//   try {
+//     const { userName, email, password } = req.body;
+
+//     if (!userName || !email || !password) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists with this email" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const newUser = await User.create({
+//       userName,
+//       email,
+//       password: hashedPassword,
+//     });
+
+//     // 🚀 JWT Token Generate Karein (Auto-login ke liye)
+//     const token = jwt.sign(
+//       { id: newUser._id, email: newUser.email },
+//       process.env.JWT_SECRET || "default_secret_key",
+//       { expiresIn: "7d" }
+//     );
+
+//     res.status(201).json({
+//       success: true,
+//       message: "User registered successfully!",
+//       token, // 👈 Token Pass Ho Raha Hai
+//       data: {
+//         id: newUser._id,
+//         userName: newUser.userName,
+//         email: newUser.email,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Signup Error:", error);
+//     res.status(500).json({ message: "Server error during registration", error: error.message });
+//   }
+// };
+
+
 import User from "../model/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// Signup Controller with Auto-Token Generation
+// Signup Controller (Auto Token Return)
 export const signup = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
@@ -192,7 +242,6 @@ export const signup = async (req, res) => {
       password: hashedPassword,
     });
 
-    // 🚀 JWT Token Generate Karein (Auto-login ke liye)
     const token = jwt.sign(
       { id: newUser._id, email: newUser.email },
       process.env.JWT_SECRET || "default_secret_key",
@@ -202,7 +251,7 @@ export const signup = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "User registered successfully!",
-      token, // 👈 Token Pass Ho Raha Hai
+      token,
       data: {
         id: newUser._id,
         userName: newUser.userName,
@@ -212,5 +261,46 @@ export const signup = async (req, res) => {
   } catch (error) {
     console.error("Signup Error:", error);
     res.status(500).json({ message: "Server error during registration", error: error.message });
+  }
+};
+
+// Signin Controller (Must be named 'signin' exactly)
+export const signin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please provide both email and password" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET || "default_secret_key",
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful!",
+      token,
+      data: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("Signin Error:", error);
+    res.status(500).json({ message: "Server error during signin", error: error.message });
   }
 };
