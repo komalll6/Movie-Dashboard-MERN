@@ -35,27 +35,59 @@
 // });
 
 
+// import express from "express";
+// import cors from "cors";
+// import dotenv from "dotenv";
+// import connectDB from "./config/db.js";
+
+// // Initialize dotenv
+// dotenv.config();
+
+// // Connect to MongoDB
+// connectDB();
+
+// import authRoutes from "./api/router/authRoutes.js";
+// import watchlistRoutes from "./api/router/watchlistRoutes.js";
+
+// const app = express();
+
+// // Middlewares
+// app.use(cors());
+// app.use(express.json());
+
+// // API Routes
+// app.get("/", (req, res) => {
+//   res.send("Backend API is running successfully!");
+// });
+
+// app.use("/api/auth", authRoutes);
+// app.use("/api/watchlist", watchlistRoutes);
+
+// const PORT = process.env.PORT || 5000;
+
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
-// Initialize dotenv
-dotenv.config();
-
-// Connect to MongoDB
-connectDB();
-
 import authRoutes from "./api/router/authRoutes.js";
 import watchlistRoutes from "./api/router/watchlistRoutes.js";
 
+dotenv.config();
+
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// API Routes
+// DB Connection
+connectDB();
+
+// Routes
 app.get("/", (req, res) => {
   res.send("Backend API is running successfully!");
 });

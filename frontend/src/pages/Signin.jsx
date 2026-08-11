@@ -108,59 +108,72 @@ function Signin() {
   const { loginUser } = useAuth();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await login(formData);
       loginUser(res.data.data, res.data.token);
-      navigate("/home");
+      navigate("/");
     } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Login failed.");
+      console.error("Login Error Details:", error);
+      alert(error.response?.data?.message || "Login failed. Check server status!");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="auth-overlay-backdrop">
-      <div className="glass-auth-card">
-        <h2 style={{ fontSize: "2rem", marginBottom: "0.5rem", fontWeight: 700 }}>Sign In</h2>
-        <p style={{ color: "#aaa", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0d0c0f] px-4">
+      <div className="w-full max-w-md bg-[#18161b] border border-white/10 rounded-2xl p-8 shadow-2xl z-10">
+        <h2 className="text-3xl font-bold text-white mb-2">Sign In</h2>
+        <p className="text-gray-400 text-sm mb-6">
           Access your account to start streaming
         </p>
 
-        <form onSubmit={handleSubmit} style={{ textAlign: "left" }}>
-          <label style={{ fontSize: "0.85rem", color: "#ccc" }}>Email Address</label>
-          <input
-            type="email"
-            name="email"
-            className="glass-input"
-            placeholder="you@example.com"
-            value={formData.email}
-            onChange={onChange}
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={onChange}
+              required
+            />
+          </div>
 
-          <label style={{ fontSize: "0.85rem", color: "#ccc" }}>Password</label>
-          <input
-            type="password"
-            name="password"
-            className="glass-input"
-            placeholder="Enter password"
-            value={formData.password}
-            onChange={onChange}
-            required
-          />
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition"
+              placeholder="Enter password"
+              value={formData.password}
+              onChange={onChange}
+              required
+            />
+          </div>
 
-          <button type="submit" className="glass-btn" style={{ marginTop: "1rem" }}>
-            Sign In
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition duration-200 mt-2 cursor-pointer shadow-lg shadow-red-600/20 disabled:opacity-50"
+          >
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
-        <p style={{ marginTop: "1.5rem", fontSize: "0.85rem", color: "#aaa" }}>
+        <p className="mt-6 text-xs text-gray-400 text-center">
           New here?{" "}
-          <Link to="/signup" style={{ color: "#e50914", fontWeight: 600 }}>
+          <Link to="/signup" className="text-red-500 font-semibold hover:underline">
             Create an account
           </Link>
         </p>
