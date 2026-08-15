@@ -1,11 +1,13 @@
-//new- 06-08-26
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AppContext";
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { isAuthenticated, token } = useAuth();
+  
+  // LocalStorage se bhi backup check
+  const savedToken = localStorage.getItem("komsify_token");
 
-  if (!user) {
+  if (!isAuthenticated && !savedToken) {
     return <Navigate to="/signin" replace />;
   }
 

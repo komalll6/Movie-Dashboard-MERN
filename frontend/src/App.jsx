@@ -14,7 +14,7 @@ import Footer from './components/Footer';
 
 // Auth Protection
 import ProtectedRoute from "./routes/ProtectedRoute";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AppContext"; // 👈 Fixed import path
 
 function App() {
   return (

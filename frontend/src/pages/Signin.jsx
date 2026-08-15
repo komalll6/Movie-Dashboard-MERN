@@ -189,7 +189,7 @@
 import { useState } from "react";
 import { login } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AppContext"; // 👈 Fixed import path
 
 function Signin() {
   const navigate = useNavigate();
@@ -223,7 +223,6 @@ function Signin() {
           Access your account to start streaming
         </p>
 
-        {/* autoComplete="off" prevents browser auto-filling */}
         <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4 text-left">
           <div>
             <label className="block text-xs font-medium text-gray-300 mb-1">Email Address</label>
@@ -244,7 +243,7 @@ function Signin() {
             <input
               type="password"
               name="password"
-              autoComplete="new-password" // 👈 Stop browser from auto-filling saved passwords
+              autoComplete="new-password"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition"
               placeholder="Enter password"
               value={formData.password}
