@@ -13,20 +13,16 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [genres, setGenres] = useState([]);
 
-  // Local Storage mein watchlist sync
   useEffect(() => {
     localStorage.setItem("movie_hub_watchlist", JSON.stringify(watchlist));
   }, [watchlist]);
 
-  // Safe Genre Fetching logic
   useEffect(() => {
     const fetchGenres = async () => {
       try {
         if (movieService && typeof movieService.getGenres === 'function') {
           const genreList = await movieService.getGenres();
           setGenres(genreList);
-        } else {
-          console.warn("movieService.getGenres is not defined yet.");
         }
       } catch (error) {
         console.error("Error fetching genres:", error);
@@ -35,7 +31,6 @@ export const AppProvider = ({ children }) => {
     fetchGenres();
   }, []);
 
-  // Watchlist Helpers
   const addToWatchlist = (movie) => {
     if (!watchlist.some((item) => item.id === movie.id)) {
       setWatchlist((prev) => [...prev, movie]);

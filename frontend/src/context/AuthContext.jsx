@@ -38,14 +38,11 @@
 
 //new- 06-08-26
 // 
-
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { movieService } from "../services/movieService";
+import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-export const AppProvider = ({ children }) => {
-  // User state for persistent login
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("komsify_user");
     return savedUser ? JSON.parse(savedUser) : null;
@@ -55,16 +52,6 @@ export const AppProvider = ({ children }) => {
     return localStorage.getItem("komsify_token") || null;
   });
 
-  const [movies, setMovies] = useState([]); 
-  const [searchResults, setSearchResults] = useState([]);
-  const [watchlist, setWatchlist] = useState(() => {
-    const savedWatchlist = localStorage.getItem("movie_hub_watchlist");
-    return savedWatchlist ? JSON.parse(savedWatchlist) : [];
-  });
-  const [loading, setLoading] = useState(false);
-  const [genres, setGenres] = useState([]);
-
-  // Auth methods
   const loginUser = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
@@ -79,54 +66,12 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem("komsify_token");
   };
 
-  // Watchlist persistence
-  useEffect(() => {
-    localStorage.setItem("movie_hub_watchlist", JSON.stringify(watchlist));
-  }, [watchlist]);
-
-  // Safe Genre Fetching
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        if (movieService && typeof movieService.getGenres === 'function') {
-          const genreList = await movieService.getGenres();
-          setGenres(genreList);
-        } else {
-          console.warn("movieService.getGenres is not defined yet.");
-        }
-      } catch (error) {
-        console.error("Error fetching genres:", error);
-      }
-    };
-    fetchGenres();
-  }, []);
-
-  const addToWatchlist = (movie) => {
-    if (!watchlist.some((item) => item.id === movie.id)) {
-      setWatchlist((prev) => [...prev, movie]);
-    }
-  };
-
-  const removeFromWatchlist = (movieId) => {
-    setWatchlist((prev) => prev.filter((item) => item.id !== movieId));
-  };
-
   const value = {
     user,
     token,
     loginUser,
     logoutUser,
     isAuthenticated: !!token,
-    movies,
-    setMovies,
-    searchResults,
-    setSearchResults,
-    watchlist,
-    addToWatchlist,
-    removeFromWatchlist,
-    loading,
-    setLoading,
-    genres,
   };
 
   return (
@@ -136,8 +81,5 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-export const AuthProvider = AppProvider;
-export default AppProvider;
-
 export const useAuth = () => useContext(AuthContext);
-export const useAppContext = () => useContext(AuthContext);
+export default AuthContext;
