@@ -39,103 +39,105 @@
 //new- 06-08-26
 // 
 
-import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { movieService } from "../services/movieService";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  // Safe JSON Parsing for User State
+export const AppProvider = ({ children }) => {
+  // User state for persistent login
   const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem("user");
-      if (!savedUser || savedUser === "undefined") {
-        return null;
-      }
-      return JSON.parse(savedUser);
-    } catch (error) {
-      console.error("Error parsing user from localStorage:", error);
-      localStorage.removeItem("user");
-      return null;
-    }
+    const savedUser = localStorage.getItem("komsify_user");
+    return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // Safe Token State Retrieval
   const [token, setToken] = useState(() => {
-    const savedToken = localStorage.getItem("token");
-    if (!savedToken || savedToken === "undefined") {
-      return null;
-    }
-    return savedToken;
+    return localStorage.getItem("komsify_token") || null;
   });
 
-  // Auth Modal State Management
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState("signin"); // "signin" or "signup"
+  const [movies, setMovies] = useState([]); 
+  const [searchResults, setSearchResults] = useState([]);
+  const [watchlist, setWatchlist] = useState(() => {
+    const savedWatchlist = localStorage.getItem("movie_hub_watchlist");
+    return savedWatchlist ? JSON.parse(savedWatchlist) : [];
+  });
+  const [loading, setLoading] = useState(false);
+  const [genres, setGenres] = useState([]);
 
-  const openAuthModal = (mode = "signin") => {
-    setAuthModalMode(mode);
-    setIsAuthModalOpen(true);
-  };
-
-  const closeAuthModal = () => {
-    setIsAuthModalOpen(false);
-  };
-
+  // Auth methods
   const loginUser = (userData, userToken) => {
     setUser(userData);
     setToken(userToken);
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", userToken);
-    closeAuthModal(); // Close modal automatically on successful login
+    localStorage.setItem("komsify_user", JSON.stringify(userData));
+    localStorage.setItem("komsify_token", userToken);
   };
 
   const logoutUser = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.removeItem("komsify_user");
+    localStorage.removeItem("komsify_token");
   };
 
-  // Verify stored token with backend on initial load
+  // Watchlist persistence
   useEffect(() => {
-    const verifyToken = async () => {
-      const savedToken = localStorage.getItem("token");
-      if (!savedToken) {
-        logoutUser();
-        return;
-      }
+    localStorage.setItem("movie_hub_watchlist", JSON.stringify(watchlist));
+  }, [watchlist]);
 
+  // Safe Genre Fetching
+  useEffect(() => {
+    const fetchGenres = async () => {
       try {
-        await axios.get("http://localhost:5000/api/auth/me", {
-          headers: { Authorization: `Bearer ${savedToken}` },
-        });
+        if (movieService && typeof movieService.getGenres === 'function') {
+          const genreList = await movieService.getGenres();
+          setGenres(genreList);
+        } else {
+          console.warn("movieService.getGenres is not defined yet.");
+        }
       } catch (error) {
-        console.warn("Session expired or token invalid. Clearing auth state.");
-        logoutUser();
+        console.error("Error fetching genres:", error);
       }
     };
-
-    verifyToken();
+    fetchGenres();
   }, []);
 
+  const addToWatchlist = (movie) => {
+    if (!watchlist.some((item) => item.id === movie.id)) {
+      setWatchlist((prev) => [...prev, movie]);
+    }
+  };
+
+  const removeFromWatchlist = (movieId) => {
+    setWatchlist((prev) => prev.filter((item) => item.id !== movieId));
+  };
+
+  const value = {
+    user,
+    token,
+    loginUser,
+    logoutUser,
+    isAuthenticated: !!token,
+    movies,
+    setMovies,
+    searchResults,
+    setSearchResults,
+    watchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+    loading,
+    setLoading,
+    genres,
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loginUser,
-        logoutUser,
-        isAuthModalOpen,
-        authModalMode,
-        openAuthModal,
-        closeAuthModal,
-        setAuthModalMode,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+export const AuthProvider = AppProvider;
+export default AppProvider;
+
 export const useAuth = () => useContext(AuthContext);
+export const useAppContext = () => useContext(AuthContext);
