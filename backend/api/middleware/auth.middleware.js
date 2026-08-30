@@ -1,19 +1,32 @@
 import jwt from "jsonwebtoken";
 
-export const protect = (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
+export const protect = async (req, res, next) => {
+  let token;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized - No token provided" });
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+
+      // Decode token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Save user ID so watchlist controller gets it properly
+      req.user = {
+        _id: decoded.id || decoded._id || decoded.userId,
+        id: decoded.id || decoded._id || decoded.userId,
+      };
+
+      return next();
+    } catch (error) {
+      console.error("JWT Error:", error.message);
+      return res.status(401).json({ message: "Not authorized, token failed" });
     }
+  }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey123");
-
-    req.user = decoded; // Contains user ID
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Unauthorized - Invalid or expired token" });
+  if (!token) {
+    return res.status(401).json({ message: "Not authorized, no token" });
   }
 };

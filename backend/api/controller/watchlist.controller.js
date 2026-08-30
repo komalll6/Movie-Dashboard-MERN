@@ -4,46 +4,58 @@ import Watchlist from "../model/Watchlist.js";
 export const addToWatchlist = async (req, res) => {
   try {
     const { mediaId, title, posterPath, mediaType, rating } = req.body;
-    const userId = req.user.id; // Authentication middleware se aayega
+    
+    // Safely extract User ID from JWT Payload
+    const userId = req.user?._id || req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User identity not found in token." });
+    }
 
     // Check if already in watchlist
-    const exists = await Watchlist.findOne({ userId, mediaId });
+    const exists = await Watchlist.findOne({ userId, mediaId: String(mediaId) });
     if (exists) {
-      return res.status(400).json({ message: "Item is already in your watchlist!" });
+      return res.status(200).json({
+        success: true,
+        message: "Item is already in your watchlist!",
+        data: exists,
+      });
     }
 
     const newItem = await Watchlist.create({
       userId,
-      mediaId,
-      title,
-      posterPath,
-      mediaType,
-      rating,
+      mediaId: String(mediaId),
+      title: title || "Untitled",
+      posterPath: posterPath || "",
+      mediaType: mediaType || "movie",
+      rating: rating || 0,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Added to Watchlist successfully!",
       data: newItem,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Failed to add to watchlist" });
+    console.error("Error in addToWatchlist:", error);
+    return res.status(500).json({ success: false, message: error.message || "Failed to add to watchlist" });
   }
 };
 
 // 2. Get User's Watchlist
 export const getWatchlist = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?._id || req.user?.id;
     const list = await Watchlist.find({ userId }).sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: list.length,
       data: list,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Failed to fetch watchlist" });
+    console.error("Error in getWatchlist:", error);
+    return res.status(500).json({ success: false, message: error.message || "Failed to fetch watchlist" });
   }
 };
 
@@ -51,15 +63,16 @@ export const getWatchlist = async (req, res) => {
 export const removeFromWatchlist = async (req, res) => {
   try {
     const { mediaId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user?._id || req.user?.id;
 
-    await Watchlist.findOneAndDelete({ userId, mediaId });
+    await Watchlist.findOneAndDelete({ userId, mediaId: String(mediaId) });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Removed from Watchlist successfully!",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Failed to remove item" });
+    console.error("Error in removeFromWatchlist:", error);
+    return res.status(500).json({ success: false, message: error.message || "Failed to remove item" });
   }
 };

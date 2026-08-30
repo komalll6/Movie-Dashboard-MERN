@@ -45,47 +45,67 @@
 //new- 31-08
 import axios from "axios";
 
-// Base API setup
 const API = axios.create({
   baseURL: "http://localhost:5000/api/watchlist",
 });
 
-// Helper function to extract token from all possible LocalStorage keys
-const getToken = () => {
+// Helper function to dynamically check token
+export const getToken = () => {
   let token =
     localStorage.getItem("token") ||
     localStorage.getItem("user_token") ||
     localStorage.getItem("authToken");
 
   if (!token) {
-    // If stored as an object e.g., localStorage.getItem("user")
     const storedUser = localStorage.getItem("user") || localStorage.getItem("userInfo");
     if (storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
         token = parsed.token || parsed.jwt;
       } catch (e) {
-        // Fallback catch
+        // Fallback
       }
     }
   }
+
+  if (token) {
+    token = String(token).replace(/^"|"$/g, "").trim();
+  }
+
   return token;
 };
 
-// Request interceptor to attach JWT Token automatically
+// Request Interceptor
 API.interceptors.request.use(
   (req) => {
     const token = getToken();
     if (token) {
       req.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.warn("⚠️ No JWT Auth token found in LocalStorage!");
     }
     return req;
   },
   (error) => Promise.reject(error)
 );
 
-export const getWatchlistAPI = () => API.get("/");
-export const addToWatchlistAPI = (movieData) => API.post("/add", movieData);
-export const removeFromWatchlistAPI = (mediaId) => API.delete(`/remove/${mediaId}`);
+export const getWatchlistAPI = async () => {
+  const token = getToken();
+  // Don't even send network request if token is missing
+  if (!token) {
+    return { data: { success: false, data: [] } };
+  }
+  return await API.get("/");
+};
+
+export const addToWatchlistAPI = async (movieData) => {
+  const token = getToken();
+  if (!token) {
+    throw new Error("User not authenticated. Token missing!");
+  }
+  return await API.post("/add", movieData);
+};
+
+export const removeFromWatchlistAPI = async (mediaId) => {
+  const token = getToken();
+  if (!token) return;
+  return await API.delete(`/remove/${mediaId}`);
+};

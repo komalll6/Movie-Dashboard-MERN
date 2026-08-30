@@ -20,8 +20,8 @@ const watchlistSchema = new mongoose.Schema(
       default: "",
     },
     mediaType: {
-      type: String, // 'movie', 'tv', ya 'anime'
-      required: true,
+      type: String,
+      default: "movie",
     },
     rating: {
       type: Number,

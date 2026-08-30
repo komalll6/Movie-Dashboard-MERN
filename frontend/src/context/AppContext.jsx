@@ -175,12 +175,13 @@
 
 
 //new- 31-08
-import { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { movieService } from "../services/movieService";
 import {
   getWatchlistAPI,
   addToWatchlistAPI,
   removeFromWatchlistAPI,
+  getToken,
 } from "../services/watchlistService";
 
 const AppContext = createContext();
@@ -192,21 +193,12 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [genres, setGenres] = useState([]);
 
-  // Helper to retrieve auth token
-  const getAuthToken = () => {
-    return (
-      localStorage.getItem("token") ||
-      localStorage.getItem("user_token") ||
-      localStorage.getItem("authToken") ||
-      (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.token : null)
-    );
-  };
-
-  // Fetch Watchlist from Backend on Mount
+  // Fetch Watchlist Safely
   const fetchBackendWatchlist = async () => {
-    const token = getAuthToken();
+    const token = getToken();
+
+    // STOP HERE if user is not logged in. Do NOT call backend API.
     if (!token) {
-      console.warn("User not logged in or token missing. Using local storage.");
       const saved = localStorage.getItem("movie_hub_watchlist");
       if (saved) setWatchlist(JSON.parse(saved));
       return;
@@ -214,13 +206,12 @@ export const AppProvider = ({ children }) => {
 
     try {
       const response = await getWatchlistAPI();
-      // Supports response.data.data array OR response.data array
       const rawList = response?.data?.data || response?.data || [];
 
       if (Array.isArray(rawList)) {
         const formattedList = rawList.map((item) => ({
-          id: String(item.mediaId || item.id || item.movieId),
-          title: item.title || item.name,
+          id: String(item.mediaId || item.id),
+          title: item.title,
           poster_path: item.posterPath || item.poster_path,
           media_type: item.mediaType || item.media_type || "movie",
           vote_average: item.rating || item.vote_average || 0,
@@ -228,7 +219,7 @@ export const AppProvider = ({ children }) => {
         setWatchlist(formattedList);
       }
     } catch (error) {
-      console.error("Backend Watchlist fetch failed, fallback to local:", error);
+      // Fallback silently without throwing unhandled exceptions
       const saved = localStorage.getItem("movie_hub_watchlist");
       if (saved) setWatchlist(JSON.parse(saved));
     }
@@ -257,12 +248,12 @@ export const AppProvider = ({ children }) => {
 
     if (!watchlist.some((item) => String(item.id) === mediaId)) {
       const newWatchlist = [...watchlist, { ...movie, id: mediaId }];
-      
-      // Optimistic UI Update & Local Storage Backup
       setWatchlist(newWatchlist);
       localStorage.setItem("movie_hub_watchlist", JSON.stringify(newWatchlist));
 
-      // API Call to MongoDB Backend
+      const token = getToken();
+      if (!token) return; // Skip API call if not logged in
+
       try {
         await addToWatchlistAPI({
           mediaId: mediaId,
@@ -271,9 +262,8 @@ export const AppProvider = ({ children }) => {
           mediaType: movie.media_type || (movie.title ? "movie" : "tv"),
           rating: movie.vote_average || movie.voteAverage || 0,
         });
-        console.log("✅ Successfully saved to MongoDB Database!");
       } catch (error) {
-        console.error("Failed to add to database:", error);
+        // Silently caught
       }
     }
   };
@@ -285,11 +275,13 @@ export const AppProvider = ({ children }) => {
     setWatchlist(updatedList);
     localStorage.setItem("movie_hub_watchlist", JSON.stringify(updatedList));
 
+    const token = getToken();
+    if (!token) return;
+
     try {
       await removeFromWatchlistAPI(stringId);
-      console.log("✅ Successfully deleted from MongoDB Database!");
     } catch (error) {
-      console.error("Failed to remove from database:", error);
+      // Silently caught
     }
   };
 
