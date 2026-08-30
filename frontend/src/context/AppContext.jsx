@@ -65,6 +65,116 @@
 // export default AppContext;
 
 //NEW - 30-08
+// import { createContext, useContext, useState, useEffect } from "react";
+// import { movieService } from "../services/movieService";
+// import {
+//   getWatchlistAPI,
+//   addToWatchlistAPI,
+//   removeFromWatchlistAPI,
+// } from "../services/watchlistService";
+
+// const AppContext = createContext();
+
+// export const AppProvider = ({ children }) => {
+//   const [movies, setMovies] = useState([]);
+//   const [searchResults, setSearchResults] = useState([]);
+//   const [watchlist, setWatchlist] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [genres, setGenres] = useState([]);
+
+//   // Fetch Watchlist from Backend on Mount
+//   const fetchBackendWatchlist = async () => {
+//     try {
+//       const response = await getWatchlistAPI();
+//       if (response.data && response.data.success) {
+//         // Map backend response fields to frontend structure
+//         const formattedList = response.data.data.map((item) => ({
+//           id: item.mediaId,
+//           title: item.title,
+//           poster_path: item.posterPath,
+//           media_type: item.mediaType,
+//           vote_average: item.rating,
+//         }));
+//         setWatchlist(formattedList);
+//       }
+//     } catch (error) {
+//       console.error("Backend Watchlist fetch failed, fallback to local:", error);
+//       const saved = localStorage.getItem("movie_hub_watchlist");
+//       if (saved) setWatchlist(JSON.parse(saved));
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchBackendWatchlist();
+//   }, []);
+
+//   useEffect(() => {
+//     const fetchGenres = async () => {
+//       try {
+//         if (movieService && typeof movieService.getGenres === "function") {
+//           const genreList = await movieService.getGenres();
+//           setGenres(genreList);
+//         }
+//       } catch (error) {
+//         console.error("Error fetching genres:", error);
+//       }
+//     };
+//     fetchGenres();
+//   }, []);
+
+//   const addToWatchlist = async (movie) => {
+//     const mediaId = String(movie.id);
+//     if (!watchlist.some((item) => String(item.id) === mediaId)) {
+//       // Optimistic UI Update
+//       setWatchlist((prev) => [...prev, movie]);
+
+//       // API Call to MongoDB Backend
+//       try {
+//         await addToWatchlistAPI({
+//           mediaId: mediaId,
+//           title: movie.title || movie.name || "Untitled",
+//           posterPath: movie.poster_path || "",
+//           mediaType: movie.media_type || (movie.title ? "movie" : "tv"),
+//           rating: movie.vote_average || 0,
+//         });
+//       } catch (error) {
+//         console.error("Failed to add to database:", error);
+//       }
+//     }
+//   };
+
+//   const removeFromWatchlist = async (movieId) => {
+//     setWatchlist((prev) => prev.filter((item) => String(item.id) !== String(movieId)));
+
+//     try {
+//       await removeFromWatchlistAPI(movieId);
+//     } catch (error) {
+//       console.error("Failed to remove from database:", error);
+//     }
+//   };
+
+//   const value = {
+//     movies,
+//     setMovies,
+//     searchResults,
+//     setSearchResults,
+//     watchlist,
+//     addToWatchlist,
+//     removeFromWatchlist,
+//     loading,
+//     setLoading,
+//     genres,
+//   };
+
+//   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+// };
+
+// export const useAppContext = () => useContext(AppContext);
+// export default AppContext;
+
+
+
+//new- 31-08
 import { createContext, useContext, useState, useEffect } from "react";
 import { movieService } from "../services/movieService";
 import {
@@ -82,18 +192,38 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [genres, setGenres] = useState([]);
 
+  // Helper to retrieve auth token
+  const getAuthToken = () => {
+    return (
+      localStorage.getItem("token") ||
+      localStorage.getItem("user_token") ||
+      localStorage.getItem("authToken") ||
+      (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user"))?.token : null)
+    );
+  };
+
   // Fetch Watchlist from Backend on Mount
   const fetchBackendWatchlist = async () => {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn("User not logged in or token missing. Using local storage.");
+      const saved = localStorage.getItem("movie_hub_watchlist");
+      if (saved) setWatchlist(JSON.parse(saved));
+      return;
+    }
+
     try {
       const response = await getWatchlistAPI();
-      if (response.data && response.data.success) {
-        // Map backend response fields to frontend structure
-        const formattedList = response.data.data.map((item) => ({
-          id: item.mediaId,
-          title: item.title,
-          poster_path: item.posterPath,
-          media_type: item.mediaType,
-          vote_average: item.rating,
+      // Supports response.data.data array OR response.data array
+      const rawList = response?.data?.data || response?.data || [];
+
+      if (Array.isArray(rawList)) {
+        const formattedList = rawList.map((item) => ({
+          id: String(item.mediaId || item.id || item.movieId),
+          title: item.title || item.name,
+          poster_path: item.posterPath || item.poster_path,
+          media_type: item.mediaType || item.media_type || "movie",
+          vote_average: item.rating || item.vote_average || 0,
         }));
         setWatchlist(formattedList);
       }
@@ -123,20 +253,25 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const addToWatchlist = async (movie) => {
-    const mediaId = String(movie.id);
+    const mediaId = String(movie.id || movie.movieId);
+
     if (!watchlist.some((item) => String(item.id) === mediaId)) {
-      // Optimistic UI Update
-      setWatchlist((prev) => [...prev, movie]);
+      const newWatchlist = [...watchlist, { ...movie, id: mediaId }];
+      
+      // Optimistic UI Update & Local Storage Backup
+      setWatchlist(newWatchlist);
+      localStorage.setItem("movie_hub_watchlist", JSON.stringify(newWatchlist));
 
       // API Call to MongoDB Backend
       try {
         await addToWatchlistAPI({
           mediaId: mediaId,
           title: movie.title || movie.name || "Untitled",
-          posterPath: movie.poster_path || "",
+          posterPath: movie.poster_path || movie.posterPath || "",
           mediaType: movie.media_type || (movie.title ? "movie" : "tv"),
-          rating: movie.vote_average || 0,
+          rating: movie.vote_average || movie.voteAverage || 0,
         });
+        console.log("✅ Successfully saved to MongoDB Database!");
       } catch (error) {
         console.error("Failed to add to database:", error);
       }
@@ -144,10 +279,15 @@ export const AppProvider = ({ children }) => {
   };
 
   const removeFromWatchlist = async (movieId) => {
-    setWatchlist((prev) => prev.filter((item) => String(item.id) !== String(movieId)));
+    const stringId = String(movieId);
+    const updatedList = watchlist.filter((item) => String(item.id) !== stringId);
+
+    setWatchlist(updatedList);
+    localStorage.setItem("movie_hub_watchlist", JSON.stringify(updatedList));
 
     try {
-      await removeFromWatchlistAPI(movieId);
+      await removeFromWatchlistAPI(stringId);
+      console.log("✅ Successfully deleted from MongoDB Database!");
     } catch (error) {
       console.error("Failed to remove from database:", error);
     }
@@ -164,6 +304,7 @@ export const AppProvider = ({ children }) => {
     loading,
     setLoading,
     genres,
+    fetchBackendWatchlist,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
