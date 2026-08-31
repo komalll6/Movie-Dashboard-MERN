@@ -1,3 +1,22 @@
+// import express from "express";
+// import {
+//   addToWatchlist,
+//   getWatchlist,
+//   removeFromWatchlist,
+// } from "../controller/watchlist.controller.js";
+// import { protect } from "../middleware/auth.middleware.js";
+
+// const router = express.Router();
+
+// // All routes are protected by JWT Auth
+// router.post("/add", protect, addToWatchlist);
+// router.get("/", protect, getWatchlist);
+// router.delete("/remove/:mediaId", protect, removeFromWatchlist);
+
+// export default router;
+
+
+//NEW -  NOW
 import express from "express";
 import {
   addToWatchlist,
@@ -8,9 +27,10 @@ import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// All routes are protected by JWT Auth
-router.post("/add", protect, addToWatchlist);
-router.get("/", protect, getWatchlist);
-router.delete("/remove/:mediaId", protect, removeFromWatchlist);
+router.use(protect);
+
+router.post("/add", addToWatchlist);
+router.get("/", getWatchlist);
+router.delete("/remove/:mediaId", removeFromWatchlist);
 
 export default router;
