@@ -1,4 +1,3 @@
-//new- 25-07
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { movieService } from '../services/movieService'; 

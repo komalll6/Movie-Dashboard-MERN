@@ -1,5 +1,3 @@
-//new- 27-07-26 (new file)
-
 import React, { useState } from 'react';
 import { X, Mail, Lock, User } from 'lucide-react';
 import { registerUser, loginUser } from '../services/authService';
